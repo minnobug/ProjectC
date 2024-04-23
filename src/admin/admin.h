@@ -46,8 +46,7 @@ void addProduct(Product product) {
 // Write products data to file 
 void writeProductsToFile(const char *filename, Product products[], int numProducts) {
     FILE *file_pointer;
-    
-    // Open file for writing 
+
     file_pointer = fopen(filename, "w");
 
     if (file_pointer == NULL) {
@@ -60,7 +59,6 @@ void writeProductsToFile(const char *filename, Product products[], int numProduc
         fprintf(file_pointer, "%d,%s,%.0f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
 
-    // Close file
     fclose(file_pointer);
 
     printf("The data has been saved successfully.\n");
@@ -109,7 +107,7 @@ void displayProducts() {
     }
 }
 
-// Compare function for sorting products by ID in descending order
+// Compare for sorting products by ID in descending order
 int compareProducts(const void *a, const void *b) {
     const Product *productA = (const Product *)a;
     const Product *productB = (const Product *)b;
@@ -121,7 +119,7 @@ void sortProductsByID() {
     qsort(products, numProducts, sizeof(Product), compareProducts);
 }
 
-// Load products data from file at the beginning of the program
+// Load products data from file 
 void loadProductsFromFile(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -143,7 +141,7 @@ void loadProductsFromFile(const char *filename) {
 // Reload products data from file
 void reloadProductsData() {
     numProducts = 0; // Reset the number of products
-    loadProductsFromFile(FILE_PATH); // Load products from file (sorting is done inside loadProductsFromFile)
+    loadProductsFromFile(FILE_PATH); // Load products from file 
 }
 
 
@@ -199,6 +197,7 @@ void adminMenu() {
                 scanf("%d", &id);
                 removeProduct(id);
                 sortProductsByID();
+
                 // Save products to file after removal
                 writeProductsToFile(FILE_PATH, products, numProducts);
                 break;
@@ -225,6 +224,7 @@ void adminMenu() {
                 updateProduct(id, name, price, quantity);
 
                 sortProductsByID();
+
                 // Save products to file after update
                 writeProductsToFile(FILE_PATH, products, numProducts);
 
@@ -238,6 +238,7 @@ void adminMenu() {
             }
             case 0:
                 printf("Successfully exited the product management program.\n");
+                
                 // Reload products data from file before exiting
                 reloadProductsData();
                 break;
