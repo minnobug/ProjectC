@@ -6,20 +6,54 @@
 #define MAX_PRODUCTS 100
 #define FILE_PATH "./src/data/product.txt"
 
-// PRODUCT
-typedef struct Product {
-    int id;
-    char name[100];
-    float price;
-    int quantity;
-} Product;
+struct Product;
+extern int numProducts = 0;
+void displayProductsFromFile(const char *filename);
+void addProduct(struct Product product);
+void writeProductsToFile(const char *filename, struct Product products[], int numProducts);
+void removeProduct(int id);
+void updateProduct(int id, char *newName, float newPrice, int newQuantity) ;
+void displayProducts();
+void displayProduct(struct Product product);
+void sortProductsByID();
+void loadProductsFromFile(const char *filename);
+void reloadProductsData();
 
-Product products[MAX_PRODUCTS];
-int numProducts = 0;
+// Product
+struct Product {
+  int id;
+  char name[50];
+  char manufacturer[50];
+  float price;
+  int quantity;
+};
+
+
+
+struct Product products[MAX_PRODUCTS];
+
+
+// Read products from text file
+void displayProductsFromFile(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Can't open' %s.\n", filename);
+        return;
+    }
+
+    struct Product product;
+// read product, show info
+    while (fscanf(file, "%d %s %f %d", &product.id, product.name, &product.price, &product.quantity) != EOF) {
+        displayProduct(product);
+        printf("\n");
+    }
+
+    fclose(file);
+}
 
 // Create a new PRODUCT
-Product createProduct(int id, char *name, float price, int quantity) {
-    Product product;
+struct Product createProduct(int id, char *name, float price, int quantity) {
+    struct Product product;
     product.id = id;
     strcpy(product.name, name);
     product.price = price;
@@ -28,7 +62,7 @@ Product createProduct(int id, char *name, float price, int quantity) {
 }
 
 // Add PRODUCT 
-void addProduct(Product product) {
+void addProduct(struct Product product) {
     if (numProducts < MAX_PRODUCTS) {
         
         for (int i = numProducts; i > 0; i--) {
@@ -44,7 +78,7 @@ void addProduct(Product product) {
 }
 
 // Write products data to file 
-void writeProductsToFile(const char *filename, Product products[], int numProducts) {
+void writeProductsToFile(const char *filename, struct Product products[], int numProducts) {
     FILE *file_pointer;
 
     file_pointer = fopen(filename, "w");
@@ -109,14 +143,14 @@ void displayProducts() {
 
 // Compare for sorting products by ID in descending order
 int compareProducts(const void *a, const void *b) {
-    const Product *productA = (const Product *)a;
-    const Product *productB = (const Product *)b;
+    const struct Product *productA = (const struct Product *)a;
+    const struct Product *productB = (const struct Product *)b;
     return productB->id - productA->id; // Compare in descending order
 }
 
 // Sort products by ID in descending order
 void sortProductsByID() {
-    qsort(products, numProducts, sizeof(Product), compareProducts);
+    qsort(products, numProducts, sizeof(products), compareProducts);
 }
 
 // Load products data from file 
@@ -177,7 +211,7 @@ void adminMenu() {
                 printf("Enter product quantity: ");
                 scanf("%d", &quantity);
 
-                Product newProduct = createProduct(id, name, price, quantity);
+                struct Product newProduct = createProduct(id, name, price, quantity);
                 addProduct(newProduct);
 
                 sortProductsByID();
