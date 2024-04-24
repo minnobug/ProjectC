@@ -1,10 +1,12 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// #include "./src/validation.h"
 
+int validate_choice(int min, int max);
 #define MAX_PRODUCTS 100
 #define FILE_PATH "./src/data/product.txt"
+int validate_positive_number();
 
 struct Product;
 extern int numProducts = 0;
@@ -19,41 +21,21 @@ void sortProductsByID();
 void loadProductsFromFile(const char *filename);
 void reloadProductsData();
 
-// Product
-struct Product {
-  int id;
-  char name[50];
-  char manufacturer[50];
-  float price;
-  int quantity;
-};
 
-
+// PRODUCT
+typedef struct Product {
+    int id;
+    char name[100];
+    float price;
+    int quantity;
+} Product;
 
 struct Product products[MAX_PRODUCTS];
-
-
-// Read products from text file
-void displayProductsFromFile(const char *filename) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        printf("Can't open' %s.\n", filename);
-        return;
-    }
-
-    struct Product product;
-// read product, show info
-    while (fscanf(file, "%d %s %f %d", &product.id, product.name, &product.price, &product.quantity) != EOF) {
-        displayProduct(product);
-        printf("\n");
-    }
-
-    fclose(file);
-}
+int numProducts = 0;
 
 // Create a new PRODUCT
-struct Product createProduct(int id, char *name, float price, int quantity) {
-    struct Product product;
+Product createProduct(int id, char *name, float price, int quantity) {
+    Product product;
     product.id = id;
     strcpy(product.name, name);
     product.price = price;
@@ -64,6 +46,8 @@ struct Product createProduct(int id, char *name, float price, int quantity) {
 // Add PRODUCT 
 void addProduct(struct Product product) {
     if (numProducts < MAX_PRODUCTS) {
+        
+        product.id = numProducts + 1;
         
         for (int i = numProducts; i > 0; i--) {
             products[i] = products[i - 1];
@@ -78,9 +62,10 @@ void addProduct(struct Product product) {
 }
 
 // Write products data to file 
-void writeProductsToFile(const char *filename, struct Product products[], int numProducts) {
+void writeProductsToFile(const char *filename, Product products[], int numProducts) {
     FILE *file_pointer;
-
+    
+    // Open file for writing 
     file_pointer = fopen(filename, "w");
 
     if (file_pointer == NULL) {
@@ -93,6 +78,7 @@ void writeProductsToFile(const char *filename, struct Product products[], int nu
         fprintf(file_pointer, "%d,%s,%.0f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
 
+    // Close file
     fclose(file_pointer);
 
     printf("The data has been saved successfully.\n");
@@ -141,19 +127,19 @@ void displayProducts() {
     }
 }
 
-// Compare for sorting products by ID in descending order
+// Compare function for sorting products by ID in descending order
 int compareProducts(const void *a, const void *b) {
-    const struct Product *productA = (const struct Product *)a;
-    const struct Product *productB = (const struct Product *)b;
+    const Product *productA = (const Product *)a;
+    const Product *productB = (const Product *)b;
     return productB->id - productA->id; // Compare in descending order
 }
 
 // Sort products by ID in descending order
 void sortProductsByID() {
-    qsort(products, numProducts, sizeof(products), compareProducts);
+    qsort(products, numProducts, sizeof(Product), compareProducts);
 }
 
-// Load products data from file 
+// Load products data from file at the beginning of the program
 void loadProductsFromFile(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -180,8 +166,7 @@ void reloadProductsData() {
 
 
 // ADMIN MENU
-void adminMenu() {
-    int choice;
+void adminMenu(int choice) {
     do {
         printf("MENU - Product Management: \n");
         printf("\t1. Add product \n");
@@ -189,8 +174,8 @@ void adminMenu() {
         printf("\t3. Update product \n");
         printf("\t4. Display list of product \n");
         printf("\t0. Exit\n");
-        printf("Your choice: ");
-        scanf("%d", &choice);
+        choice = validate_choice(0, 4);
+
 
         switch (choice) {
             case 1: // add product
@@ -199,19 +184,16 @@ void adminMenu() {
                 float price;
                 char name[100];
 
-                printf("Enter product ID: ");
-                scanf("%d", &id);
-
                 printf("Enter product name: ");
                 scanf("%s", name);
 
                 printf("Enter product price: ");
-                scanf("%f", &price);
+                price = validate_positive_number();
 
                 printf("Enter product quantity: ");
-                scanf("%d", &quantity);
+                quantity = validate_positive_number();
 
-                struct Product newProduct = createProduct(id, name, price, quantity);
+                Product newProduct = createProduct(id, name, price, quantity);
                 addProduct(newProduct);
 
                 sortProductsByID();
@@ -219,10 +201,9 @@ void adminMenu() {
                 // Save products to file
                 writeProductsToFile(FILE_PATH, products, numProducts);
 
-                
-
                 break;
             }
+
 
             case 2: // remove product
             {
@@ -231,48 +212,46 @@ void adminMenu() {
                 scanf("%d", &id);
                 removeProduct(id);
                 sortProductsByID();
-
                 // Save products to file after removal
                 writeProductsToFile(FILE_PATH, products, numProducts);
                 break;
             }
 
             case 3: // update product
-            {
-                int id, quantity;
-                float price;
-                char name[100];
+           {
+               int id, quantity;
+               float price;
+               char name[100];
 
-                printf("Enter product ID to update: ");
-                scanf("%d", &id);
+               printf("Enter product ID to update: ");
+               scanf("%d", &id);
 
-                printf("Enter new product name: ");
-                scanf("%s", name);
+               printf("Enter new product name: ");
+               scanf("%s", name);
 
-                printf("Enter new product price: ");
-                scanf("%f", &price);
+               printf("Enter new product price: ");
+               price = validate_positive_number();
 
-                printf("Enter new product quantity: ");
-                scanf("%d", &quantity);
+               printf("Enter new product quantity: ");
+               quantity = validate_positive_number();
 
-                updateProduct(id, name, price, quantity);
+               updateProduct(id, name, price, quantity);
 
-                sortProductsByID();
+               sortProductsByID();
+               // Save products to file after update
+               writeProductsToFile(FILE_PATH, products, numProducts);
 
-                // Save products to file after update
-                writeProductsToFile(FILE_PATH, products, numProducts);
-
-                break;
-            }
+               break;
+           }
             case 4: // display list of product
             {
+                reloadProductsData();
                 displayProducts();
 
                 break;
             }
             case 0:
                 printf("Successfully exited the product management program.\n");
-                
                 // Reload products data from file before exiting
                 reloadProductsData();
                 break;

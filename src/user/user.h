@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+//#include "./src/validation.h"
+int validate_choice(int min, int max);
 
 #define MAX_CART 100
 #define MAX_PRODUCTS 100
 
 struct Product;
 struct Cart;
-void displayProduct( struct Product product);
-void displayProductsFromFiletxt(const char *filename);
+void displayProductsFromFile(const char *filename); //đây
 void initCart( struct Cart *cart);
 void displayCart(struct Cart *cart);
 void addProductToCart(struct Cart *cart, struct Product product);
@@ -28,7 +30,7 @@ struct Product {
 void displayProduct(struct Product product);
 
 // Read products from text file
-void displayProductsFromFiletxt(const char *filename) {
+void displayProductsFromFile(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("Can't open' %s.\n", filename);
@@ -38,11 +40,11 @@ void displayProductsFromFiletxt(const char *filename) {
     struct Product product;
     // read product, show info
     while (fscanf(file, "%d %s %f %d", &product.id, product.name, &product.price, &product.quantity) != EOF) {
-        displayProduct(product);
-        printf("\n");
+      displayProduct(product);
+      printf("\n");
     }
 
-    fclose(file);
+  fclose(file);
 }
 
 // Display product
@@ -148,6 +150,7 @@ void userMenu() {
         printf("\t0. Exit\n");
         printf("Your choice: ");
         scanf("%d", &choice);
+        choice = validate_choice(0, 2);
 
         switch (choice) {
             case 1: {
@@ -162,89 +165,78 @@ void userMenu() {
                     printf("\t0. Exit\n");
                     printf("Your choice: ");
                     scanf("%d", &cartChoice);
-                    int choice;
-                    do {
-                        printf("\nMenu - Shopping Cart Management:\n");
-                        printf("\t1. Display Cart\n");
-                        printf("\t2. Add new product to cart\n");
-                        printf("\t3. Remove product from cart\n");
-                        printf("\t4. Update the number of products in the cart\n");
-                        printf("\t5. Show all available products\n");
-                        printf("\t0. Exit\n");
-                        printf("Your choice: ");
-                        scanf("%d", &choice);
-
+                    choice = validate_choice(0, 5);
                         switch (choice) {
-                            case 1:
-                                displayCart(&carts[0]); 
-                                break;
-                            case 2: {
-                                // Enter new product information
-                                struct Product newProduct;
-                                printf("Enter the product ID: ");
-                                scanf("%d", &newProduct.id);
-                                printf("Enter the product quantity: ");
-                                scanf("%d", &newProduct.quantity);
+                          case 1:
+                              displayCart(&carts[0]); 
+                              break;
+                          case 2: {
+                              // Enter new product information
+                              struct Product newProduct;
+                              printf("Enter the product ID: ");
+                              scanf("%d", &newProduct.id);
+                              printf("Enter the product quantity: ");
+                              scanf("%d", &newProduct.quantity);
 
-                                // Add product to the cart
-                                addProductToCart(&carts[0], newProduct); 
-                                break;
-                            }
-                            case 3: {
-                                // Enter the product ID to delete
-                                int productId;
-                                printf("Enter the product ID to delete: ");
-                                scanf("%d", &productId);
+                              // Add product to the cart
+                              addProductToCart(&carts[0], newProduct); 
+                              break;
+                          }
+                          case 3: {
+                              // Enter the product ID to delete
+                              int productId;
+                              printf("Enter the product ID to delete: ");
+                              scanf("%d", &productId);
 
-                                // remove product from cart
-                                removeProductFromCart(&carts[0], productId); 
-                                break;
-                            }
-                            case 4: {
-                                // Enter the product ID whose quantity needs to be updated
-                                int productId, newQuantity;
-                                printf("Enter the product ID whose quantity needs to be updated: ");
-                                scanf("%d", &productId);
-                                printf("Enter the new quantity: ");
-                                scanf("%d", &newQuantity);
+                              // remove product from cart
+                              removeProductFromCart(&carts[0], productId); 
+                              break;
+                          }
+                          case 4: {
+                            // Enter the product ID whose quantity needs to be updated
+                            int productId, newQuantity;
+                            printf("Enter the product ID whose quantity needs to be updated: ");
+                            scanf("%d", &productId);
+                            printf("Enter the new quantity: ");
+                            scanf("%d", &newQuantity);
 
-                                // Update the number of products in the cart
-                                updateProductQuantity(&carts[0], productId, newQuantity); 
-                                break;
-                            }
-                            case 5:{
-                                displayProductsFromFiletxt("product.txt");
-                                break;
-                            }
-                            case 0:
-                                printf("Successfully exited the shopping cart management program.\n");
-                                break;
-                            default:
-                                printf("Invalid selection! Please try again.\n");
-                        }
-                    } while (choice != 0);
-                } while (cartChoice != 0);
-                break;
-            }
+                            // Update the number of products in the cart
+                            updateProductQuantity(&carts[0], productId, newQuantity); 
+                            break;
+                          }
+                          case 5:{
+                          displayProductsFromFiletxt("product.txt");
+                          break;
+                          }
+                          case 0:
+                          printf("Successfully exited the shopping cart management program.\n");
+                          break;
+                          default:
+                          printf("Invalid selection! Please try again.\n");
+                          }  
+                       } while (cartChoice != 0);
+                       break;
+                      }
 
             case 2: {
                 int orderChoice;
                 do {
-                    printf("\nMenu - Order Management:\n");
-                    printf("\t1. Create order\n");
-                    printf("\t2. Cancel order\n");
-                    printf("\t3. Update order\n");
-                    printf("\t4. Display information of order\n");
-                    printf("\t0. Exit\n");
-                    printf("Your choice: ");
-                    scanf("%d", &orderChoice);
+                  printf("\nMenu - Order Management:\n");
+                  printf("\t1. Create order\n");
+                  printf("\t2. Cancel order\n");
+                  printf("\t3. Update order\n");
+                  printf("\t4. Display information of order\n");
+                  printf("\t0. Exit\n");
+                  printf("Your choice: ");
+                  scanf("%d", &orderChoice);
+                  choice = validate_choice(0, 4);
                 } while (orderChoice != 0);
                 break;
-            }
+              }
 
             case 0:{
-                printf("Successfully exited.\n");
-                break;
+              printf("Successfully exited.\n");
+              break;
             }
 
             default:

@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "./src/admin/admin.h"
 #include "./src/user/user.h"
+#include "./src/validation.h"
 
-
-
-void mainMenu() {
-    int choice;
+void mainMenu(int choice) {
     char usernameUser[50];
     char passwordUser[50];
     char usernameAdmin[50];
@@ -18,8 +17,7 @@ void mainMenu() {
         printf("\t1. User\n");
         printf("\t2. Admin\n");
         printf("\t0. Exit\n");
-        printf("Your choice: ");
-        scanf("%d", &choice);
+        choice = validate_choice(0, 2);
 
         if (choice == 1) { // USER LOGIN
             printf("Enter username: ");
@@ -54,7 +52,7 @@ void mainMenu() {
 
                 if (strcmp(usernameUser, stored_username) == 0 && strcmp(passwordUser, stored_password) == 0) {
                     printf("Login successful.\n");
-                    userMenu();
+                    userMenu(choice);
                     fclose(file_pointer);
                     return;
                 }
@@ -91,8 +89,8 @@ void mainMenu() {
                 stored_password[strcspn(stored_password, "\n")] = '\0';
 
                 if (strcmp(usernameAdmin, stored_username) == 0 && strcmp(passwordAdmin, stored_password) == 0) {
-                    printf("Login successful.\n");
-                    adminMenu();
+                    printf("Login successfully.\n");
+                      adminMenu(choice);
                     fclose(file_pointer);
                     return;
                 }
@@ -104,7 +102,13 @@ void mainMenu() {
     } while (choice != 0);
 }
 
+
+
 int main() {
-    mainMenu();
+    int choice;
+    do {
+        mainMenu(choice);
+    } while (choice != 0);
+
     return 0;
 }
