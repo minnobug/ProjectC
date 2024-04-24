@@ -1,22 +1,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define MAX_PRODUCTS 100
 #define FILE_PATH "./src/data/product.txt"
 
 // PRODUCT
-typedef struct Product {
+struct Product {
     int id;
     char name[100];
     float price;
     int quantity;
-} Product;
+};
+
+
+struct Product createProduct(int id, char *name, float price, int quantity);
+void addProduct(struct Product product);
+void writeProductsToFile(const char *filename, struct Product products[], int numProducts);
+void removeProduct(int id);
+void updateProduct(int id, char *newName, float newPrice, int newQuantity);
+void displayProducts();
+int compareProducts(const void *a, const void *b);
+void sortProductsByID();
+void loadProductsFromFile(const char *filename);
+void reloadProductsData();
+void displayProduct(struct Product product);
+void displayProductsFromFile(const char *filename);
+
 
 struct Product products[MAX_PRODUCTS];
 int numProducts = 0;
 
 // Create a new PRODUCT
-Product createProduct(int id, char *name, float price, int quantity) {
+struct Product createProduct(int id, char *name, float price, int quantity) {
     struct Product product;
     product.id = id;
     strcpy(product.name, name);
@@ -28,13 +44,10 @@ Product createProduct(int id, char *name, float price, int quantity) {
 // Add PRODUCT 
 void addProduct(struct Product product) {
     if (numProducts < MAX_PRODUCTS) {
-        
         product.id = numProducts + 1;
-        
         for (int i = numProducts; i > 0; i--) {
             products[i] = products[i - 1];
         }
-       
         products[0] = product;
         numProducts++;
         printf("Product added successfully.\n");
@@ -44,25 +57,16 @@ void addProduct(struct Product product) {
 }
 
 // Write products data to file 
-void writeProductsToFile(const char *filename, Product products[], int numProducts) {
-    FILE *file_pointer;
-    
-    // Open file for writing 
-    file_pointer = fopen(filename, "w");
-
+void writeProductsToFile(const char *filename, struct Product products[], int numProducts) {
+    FILE *file_pointer = fopen(filename, "w");
     if (file_pointer == NULL) {
         printf("Error opening file.\n");
         return;
     }
-
-  
     for (int i = numProducts - 1; i >= 0; i--) {
-        fprintf(file_pointer, "%d,%s,%.0f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
+        fprintf(file_pointer, "%d,%s,%.2f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
-
-    // Close file
     fclose(file_pointer);
-
     printf("The data has been saved successfully.\n");
 }
 
@@ -101,11 +105,10 @@ void displayProducts() {
         printf("No products available.\n");
         return;
     }
-
     printf("List of Products:\n");
     printf("%-5s %-20s %-10s %-10s\n", "ID", "Name", "Price", "Quantity");
     for (int i = numProducts - 1; i >= 0; i--) {
-        printf("%-5d %-20s %-10.0f %-10d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
+        printf("%-5d %-20s %-10.2f %-10d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
 }
 
@@ -118,7 +121,7 @@ int compareProducts(const void *a, const void *b) {
 
 // Sort products by ID in descending order
 void sortProductsByID() {
-    qsort(products, numProducts, sizeof(Product), compareProducts);
+    qsort(products, numProducts, sizeof(struct Product), compareProducts);
 }
 
 // Load products data from file at the beginning of the program
@@ -128,16 +131,11 @@ void loadProductsFromFile(const char *filename) {
         printf("Error opening file.\n");
         return;
     }
-
-    // Loop until either the end of file is reached or maximum products are loaded
     while (numProducts < MAX_PRODUCTS && fscanf(file, "%d,%99[^,],%f,%d\n", &products[numProducts].id, products[numProducts].name, &products[numProducts].price, &products[numProducts].quantity) == 4) {
         numProducts++;
     }
-
     fclose(file);
-    
-    // Sort products by ID in descending order after loading
-    sortProductsByID();
+    sortProductsByID(); // Sort products by ID in descending order after loading
 }
 
 // Reload products data from file
@@ -146,8 +144,10 @@ void reloadProductsData() {
     loadProductsFromFile(FILE_PATH); // Load products from file 
 }
 
-// Display product prototype
-void displayProduct(struct Product product);
+// Display product
+void displayProduct(struct Product product) {
+    printf("ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
+}
 
 // Read products from text file
 void displayProductsFromFile(const char *filename) {
@@ -156,19 +156,10 @@ void displayProductsFromFile(const char *filename) {
         printf("Can't open' %s.\n", filename);
         return;
     }
-
     struct Product product;
-    // read product, show info
     while (fscanf(file, "%d %s %f %d", &product.id, product.name, &product.price, &product.quantity) != EOF) {
-      displayProduct(product);
-      printf("\n");
+        displayProduct(product);
+        printf("\n");
     }
-
-  fclose(file);
+    fclose(file);
 }
-
-// Display product
-void displayProduct(struct Product product) {
-  printf("ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
-}
-

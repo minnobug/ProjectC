@@ -1,23 +1,25 @@
+#ifndef ADMIN_H
+#define ADMIN_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "./product.h"
-
-
+#include "../product.h"
 int validate_choice(int min, int max);
 int validate_positive_number();
 
-struct Product;
-void displayProductsFromFile(const char *filename);
+struct Product createProduct(int id, char *name, float price, int quantity);
 void addProduct(struct Product product);
 void writeProductsToFile(const char *filename, struct Product products[], int numProducts);
 void removeProduct(int id);
-void updateProduct(int id, char *newName, float newPrice, int newQuantity) ;
+void updateProduct(int id, char *newName, float newPrice, int newQuantity);
 void displayProducts();
-void displayProduct(struct Product product);
+int compareProducts(const void *a, const void *b);
 void sortProductsByID();
 void loadProductsFromFile(const char *filename);
 void reloadProductsData();
+void displayProduct(struct Product product);
+void displayProductsFromFile(const char *filename);
+
 
 
 // ADMIN MENU
@@ -40,7 +42,9 @@ void adminMenu(int choice) {
                 char name[100];
 
                 printf("Enter product name: ");
-                scanf("%s", name);
+                fgets(name, sizeof(name), stdin);
+                name[strcspn(name, "\n")] = '\0';
+                
 
                 printf("Enter product price: ");
                 price = validate_positive_number();
@@ -116,3 +120,4 @@ void adminMenu(int choice) {
     } while(choice != 0);
 }
 
+#endif 

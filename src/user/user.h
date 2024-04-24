@@ -1,14 +1,20 @@
+#ifndef USER_H
+#define USER_H
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "product.h"
-#define MAX_CART 100
+#include <time.h>
+//#include "./src/product.h"
 
+#define MAX_CART 100
+#define MAX_PRODUCTS 100
+#define CART_ID_LENGTH 10
 
 int validate_choice(int min, int max);
 struct Product;
 struct Cart;
-void displayProductsFromFile(const char *filename); //đây
+void displayProduct(struct Product product);
+void displayProductsFromFile(const char *filename); 
 void initCart( struct Cart *cart);
 void displayCart(struct Cart *cart);
 void addProductToCart(struct Cart *cart, struct Product product);
@@ -28,6 +34,29 @@ int numCarts = 0;
 // Initialize cart
 void initCart(struct Cart *cart) {
   cart->count = 0;
+}
+
+// Generate cart ID
+char *generate_cart_id() {
+    // Allocate memory for the cart ID string
+    char *cart_id = (char *)malloc((CART_ID_LENGTH + 1) * sizeof(char));
+    
+    // Set seed for rand function based on current time
+    srand(time(NULL));
+    
+    // Possible characters in the cart ID (letters and numbers)
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    
+    // Random generate characters for the cart ID
+    for (int i = 0; i < CART_ID_LENGTH; i++) {
+        int index = rand() % (sizeof(charset) - 1);
+        cart_id[i] = charset[index];
+    }
+    
+    // End the string with a NULL character
+    cart_id[CART_ID_LENGTH] = '\0';
+    
+    return cart_id;
 }
 
 // display cart
@@ -169,7 +198,7 @@ void userMenu() {
                             break;
                           }
                           case 5:{
-                          displayProductsFromFiletxt("product.txt");
+                          displayProductsFromFile("product.txt");
                           break;
                           }
                           case 0:
@@ -209,3 +238,4 @@ void userMenu() {
     } while (choice != 0);
 }
 
+#endif 
