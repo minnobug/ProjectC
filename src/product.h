@@ -22,10 +22,13 @@ void updateProduct(int id, char *newName, float newPrice, int newQuantity);
 void displayProducts();
 int compareProducts(const void *a, const void *b);
 void sortProductsByID();
-void loadProductsFromFile(const char *filename);
+void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
 void reloadProductsData();
 void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename);
+void displayAvailableProducts(struct Product products[], int numProducts);
+void takeProductsFromFile(struct Product products[], int *numProducts);
+
 
 
 struct Product products[MAX_PRODUCTS];
@@ -106,7 +109,7 @@ void displayProducts() {
         return;
     }
     printf("List of Products:\n");
-    printf("%-5s %-20s %-10s %-10s\n", "ID", "Name", "Price", "Quantity");
+    printf("%-5s %-20s %-10s %-10s\n", "ID of Product", "Name", "Price", "Quantity");
     for (int i = numProducts - 1; i >= 0; i--) {
         printf("%-5d %-20s %-10.2f %-10d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
@@ -125,14 +128,15 @@ void sortProductsByID() {
 }
 
 // Load products data from file at the beginning of the program
-void loadProductsFromFile(const char *filename) {
-    FILE *file = fopen(filename, "r");
+void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts) {
+    FILE *file = fopen("./src/data/product.txt", "r");
     if (file == NULL) {
         printf("Error opening file.\n");
         return;
     }
-    while (numProducts < MAX_PRODUCTS && fscanf(file, "%d,%99[^,],%f,%d\n", &products[numProducts].id, products[numProducts].name, &products[numProducts].price, &products[numProducts].quantity) == 4) {
-        numProducts++;
+    while (*numProducts < MAX_PRODUCTS && fscanf(file, "%d,%99[^,],%f,%d\n", 
+    &products[*numProducts].id, products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
+        *numProducts+=1;
     }
     fclose(file);
     sortProductsByID(); // Sort products by ID in descending order after loading
@@ -141,12 +145,12 @@ void loadProductsFromFile(const char *filename) {
 // Reload products data from file
 void reloadProductsData() {
     numProducts = 0; // Reset the number of products
-    loadProductsFromFile(FILE_PATH); // Load products from file 
+    loadProductsFromFile(FILE_PATH, products, &numProducts); // Load products from file 
 }
 
 // Display product
 void displayProduct(struct Product product) {
-    printf("ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
+    printf("ID of Product: %d | Name: %s | Price: %.0f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
 }
 
 // Read products from text file
@@ -162,4 +166,27 @@ void displayProductsFromFile(const char *filename) {
         printf("\n");
     }
     fclose(file);
+}
+
+void takeProductsFromFile(struct Product products[], int *numProducts) {
+    FILE *file = fopen("./src/data/product.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    // Read data from the file
+    while (fscanf(file, "%d,%49[^,],%f,%d\n", &products[*numProducts].id,products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
+        (*numProducts)++;
+    }
+
+    fclose(file);
+}
+
+// Display available products
+void displayAvailableProducts(struct Product products[], int numProducts) {
+    printf("Products available for purchase:\n");
+    for (int i = 0; i < numProducts; i++) {
+        displayProduct(products[i]);
+    }
 }

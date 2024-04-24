@@ -15,7 +15,7 @@ void updateProduct(int id, char *newName, float newPrice, int newQuantity);
 void displayProducts();
 int compareProducts(const void *a, const void *b);
 void sortProductsByID();
-void loadProductsFromFile(const char *filename);
+void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
 void reloadProductsData();
 void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename);

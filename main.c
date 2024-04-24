@@ -53,7 +53,7 @@ void mainMenu(int choice) {
 
                 if (strcmp(usernameUser, stored_username) == 0 && strcmp(passwordUser, stored_password) == 0) {
                     printf("Login successful.\n");
-                    userMenu(choice);
+                    userMenu();
                     fclose(file_pointer);
                     return;
                 }

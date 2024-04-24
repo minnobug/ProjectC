@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-//#include "./src/product.h"
+//#include "../product.h"
 
 #define MAX_CART 100
 #define MAX_PRODUCTS 100
@@ -16,24 +16,29 @@ struct Cart;
 void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename); 
 void initCart( struct Cart *cart);
-void displayCart(struct Cart *cart);
+void displayCart(struct Cart cart);
 void addProductToCart(struct Cart *cart, struct Product product);
 void removeProductFromCart(struct Cart *cart, int id);
 void updateProductQuantity(struct Cart *cart, int id, int newQuantity);
+char *generate_cart_id();
+void readDataFromFile(struct Product products[], int *numProducts);
+void saveCartToFile(struct Cart *cart);
+void loadCartFromFile(struct Cart *cart);
+void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
 
 
-// Cart
-struct Cart {
-  struct Product products[MAX_CART];
-  int count;
-};
+typedef struct Cart {
+    char cart_id[CART_ID_LENGTH + 1];
+    struct Product products[MAX_CART];
+    int count;
+} Cart;
 
-struct Cart carts[MAX_PRODUCTS];
+struct Cart cart;
 int numCarts = 0;
 
 // Initialize cart
-void initCart(struct Cart *cart) {
-  cart->count = 0;
+void initCart(Cart *cart) {
+    cart->count = 0;
 }
 
 // Generate cart ID
@@ -59,29 +64,83 @@ char *generate_cart_id() {
     return cart_id;
 }
 
+//Read data from file product.txt
+void readDataFromFile(struct Product products[], int *numProducts) {
+    FILE *file = fopen("./src/data/product.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    // Read data from the file
+    while (fscanf(file, "%d,%49[^,],%f,%d\n", &products[*numProducts].id,
+                  products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
+        (*numProducts)++;
+    }
+
+    fclose(file);
+}
+
+// Save cart data to file
+void saveCartToFile(struct Cart *cart) {
+    FILE *file = fopen("./src/data/cart.txt", "w");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    fprintf(file, "%s\n", cart->cart_id);
+    for (int i = 0; i < cart->count; i++) {
+        fprintf(file, "%d,%d", cart->products[i].id, cart->products[i].quantity);
+        if (i < cart->count - 1) {
+          fprintf(file, "\n");
+        }
+    }
+
+    fclose(file);
+}
+
+// Load cart data from file
+void loadCartFromFile(Cart *cart) {
+    FILE *file = fopen("./src/data/cart.txt", "r");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    fscanf(file, "%s", cart->cart_id);
+    while (fscanf(file, "%d,%d", &cart->products[cart->count].id, &cart->products[cart->count].quantity) == 2) {
+        cart->count++;
+    }
+
+    fclose(file);
+}
+
 // display cart
-void displayCart(struct Cart *cart) {
-  if (cart->count == 0) {
+void displayCart(struct Cart cart) {
+  if (cart.count == 0) {
     printf("Cart is empty!\n");
     return;
   }
 
   printf("List of products in the shopping cart:\n");
-  for (int i = 0; i < cart->count; i++) {
-    displayProduct(cart->products[i]);
+  for (int i = 0; i < cart.count; i++) {
+    displayProduct(cart.products[i]);
   }
 }
 
 // Add product to the cart
 void addProductToCart(struct Cart *cart, struct Product product) {
-  if (cart->count >= MAX_CART) {
-    printf("Shopping cart is full! Unable to add product.\n");
-    return;
-  }
+    if (cart->count >= MAX_CART) {
+        printf("Shopping cart is full! Unable to add product.\n");
+        return;
+    }
 
-  cart->products[cart->count] = product;
-  cart->count++;
-  printf("Product added to cart successfully!\n");
+    cart->products[cart->count] = product;
+    cart->count++;
+    printf("Product added to cart successfully!\n");
+    // Save cart data to file after adding product
+    saveCartToFile(cart);
 }
 
 // Remove product from cart
@@ -141,73 +200,87 @@ void userMenu() {
         printf("\t1. Shopping Cart Management\n");
         printf("\t2. Order Management\n");
         printf("\t0. Exit\n");
-        printf("Your choice: ");
-        scanf("%d", &choice);
         choice = validate_choice(0, 2);
 
         switch (choice) {
             case 1: {
+                initCart(&cart);
+                
+                // Take product data from the file
+                takeProductsFromFile(products, &numProducts);
+    
+                // Load cart data from file
+                loadCartFromFile(&cart);
+
                 int cartChoice;
                 do {
                     printf("\nMenu - Shopping Cart Management:\n");
-                    printf("\t1. Displays all products available in the shop\n");
-                    printf("\t2. Displays all products in cart\n");
-                    printf("\t3. Add new product to cart\n");
-                    printf("\t4. Remove product from cart\n");
-                    printf("\t5. Update the number of products in the cart\n");
-                    printf("\t0. Exit\n");
-                    printf("Your choice: ");
-                    scanf("%d", &cartChoice);
-                    choice = validate_choice(0, 5);
-                        switch (choice) {
-                          case 1:
-                              displayCart(&carts[0]); 
-                              break;
-                          case 2: {
-                              // Enter new product information
-                              struct Product newProduct;
-                              printf("Enter the product ID: ");
-                              scanf("%d", &newProduct.id);
-                              printf("Enter the product quantity: ");
-                              scanf("%d", &newProduct.quantity);
+                    printf("1. Display all products in cart\n");
+                    printf("2. Add new product to cart\n");
+                    printf("3. Remove product from cart\n");
+                    printf("4. Update product quantity in cart\n");
+                    printf("5. Display all available products\n");
+                    printf("0. Exit\n");
+                    cartChoice = validate_choice(0, 5); // Use cartChoice here
 
-                              // Add product to the cart
-                              addProductToCart(&carts[0], newProduct); 
-                              break;
-                          }
-                          case 3: {
-                              // Enter the product ID to delete
-                              int productId;
-                              printf("Enter the product ID to delete: ");
-                              scanf("%d", &productId);
+                    switch (cartChoice) { // Use cartChoice here instead of choice
+                        case 1:
+                            displayCart(cart);
+                            break;
+                        case 2: {
+                            // Add product to cart
+                            struct Product newProduct;
+                            printf("Enter the product ID: ");
+                            scanf("%d", &newProduct.id);
+                            printf("Enter the quantity of the product: ");
+                            scanf("%d", &newProduct.quantity);
 
-                              // remove product from cart
-                              removeProductFromCart(&carts[0], productId); 
-                              break;
-                          }
-                          case 4: {
-                            // Enter the product ID whose quantity needs to be updated
+                            for (int i = 0; i < numProducts; i++) {
+                              if(newProduct.id == products[i].id) {
+                                if (newProduct.quantity > products[i].quantity) {
+                                  printf("Error!!! Over quantity");
+                                  break;
+                                }
+                                strcpy(newProduct.name, products[i].name);
+                                newProduct.price = products[i].price;
+                                addProductToCart(&cart, newProduct);
+                                break;
+                              }
+                            }
+                            break;
+                        }
+                        case 3: {
+                            int productId;
+                            printf("Enter the product ID to delete: ");
+                            scanf("%d", &productId);
+                            removeProductFromCart(&cart, productId);
+                            break;
+                        }
+                        case 4: {
                             int productId, newQuantity;
-                            printf("Enter the product ID whose quantity needs to be updated: ");
+                            printf("Enter the product ID to update quantity: ");
                             scanf("%d", &productId);
                             printf("Enter the new quantity: ");
                             scanf("%d", &newQuantity);
-
-                            // Update the number of products in the cart
-                            updateProductQuantity(&carts[0], productId, newQuantity); 
+                            updateProductQuantity(&cart, productId, newQuantity);
                             break;
-                          }
-                          case 5:{
-                          displayProductsFromFile("product.txt");
-                          break;
-                          }
-                          case 0:
-                          printf("Successfully exited the shopping cart management program.\n");
-                          break;
-                          default:
-                          printf("Invalid selection! Please try again.\n");
-                          }  
-                       } while (cartChoice != 0);
+                        }
+                        case 5:
+                            // Display available products
+                            displayAvailableProducts(products, numProducts);
+                            break;
+                        case 0:
+                            printf("Successfully exited the shopping cart management program.\n");
+                            break;
+                        default:
+                            printf("Invalid selection! Please try again.\n");
+                    }
+                      } while (cartChoice != 0); // Use cartChoice here instead of choice
+
+                       // Generate and display the cart ID
+                       char *cart_id = generate_cart_id();
+                       printf("Cart ID: %s\n", cart_id);
+                       free(cart_id); // Free memory allocated for the cart ID
                        break;
                       }
 
@@ -220,9 +293,7 @@ void userMenu() {
                   printf("\t3. Update order\n");
                   printf("\t4. Display information of order\n");
                   printf("\t0. Exit\n");
-                  printf("Your choice: ");
-                  scanf("%d", &orderChoice);
-                  choice = validate_choice(0, 4);
+                  orderChoice = validate_choice(0, 4);
                 } while (orderChoice != 0);
                 break;
               }
