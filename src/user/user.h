@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "./src/validation.h"
-int validate_choice(int min, int max);
-
+#include "product.h"
 #define MAX_CART 100
-#define MAX_PRODUCTS 100
 
+
+int validate_choice(int min, int max);
 struct Product;
 struct Cart;
 void displayProductsFromFile(const char *filename); //đây
@@ -16,41 +15,6 @@ void addProductToCart(struct Cart *cart, struct Product product);
 void removeProductFromCart(struct Cart *cart, int id);
 void updateProductQuantity(struct Cart *cart, int id, int newQuantity);
 
-
-// Product
-struct Product {
-  int id;
-  char name[50];
-  char manufacturer[50];
-  float price;
-  int quantity;
-};
-
-// Display product prototype
-void displayProduct(struct Product product);
-
-// Read products from text file
-void displayProductsFromFile(const char *filename) {
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        printf("Can't open' %s.\n", filename);
-        return;
-    }
-
-    struct Product product;
-    // read product, show info
-    while (fscanf(file, "%d %s %f %d", &product.id, product.name, &product.price, &product.quantity) != EOF) {
-      displayProduct(product);
-      printf("\n");
-    }
-
-  fclose(file);
-}
-
-// Display product
-void displayProduct(struct Product product) {
-  printf("ID: %d | Name: %s | Price: %.2f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
-}
 
 // Cart
 struct Cart {
