@@ -14,24 +14,26 @@ struct Product {
     int quantity;
 };
 
+struct Product products[MAX_PRODUCTS];
+int numProducts = 0;
+
+// Function prototypes
 struct Product createProduct(int id, char *name, float price, int quantity);
 void addProduct(struct Product product);
 void writeProductsToFile(const char *filename, struct Product products[], int numProducts);
 void removeProduct(int id);
 void updateProduct(int id, char *newName, float newPrice, int newQuantity);
 void displayProducts();
-int compareProducts(const void *a, const void *b);
 void sortProductsByID();
-void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
+void loadProductsFromFile(const char *filename);
 void reloadProductsData();
 void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename);
 void displayAvailableProducts(struct Product products[], int numProducts);
 void takeProductsFromFile(struct Product products[], int *numProducts);
-
-
-struct Product products[MAX_PRODUCTS];
-int numProducts = 0;
+int compareProducts(const void *a, const void *b);
+int getLastProductIdFromFile(const char *filename);
+int validate_positive_number();
 
 // Create a new PRODUCT
 struct Product createProduct(int id, char *name, float price, int quantity) {
@@ -45,14 +47,13 @@ struct Product createProduct(int id, char *name, float price, int quantity) {
 
 // Add PRODUCT 
 void addProduct(struct Product product) {
+    int lastId = getLastProductIdFromFile(FILE_PATH);
+    product.id = lastId + 1;
+
     if (numProducts < MAX_PRODUCTS) {
-        product.id = numProducts + 1;
-        for (int i = numProducts; i > 0; i--) {
-            products[i] = products[i - 1];
-        }
-        products[0] = product;
-        numProducts++;
-        printf("Product added successfully.\n");
+        products[numProducts++] = product;
+        writeProductsToFile(FILE_PATH, products, numProducts);
+        printf("Product added successfully with ID %d.\n", product.id);
     } else {
         printf("Cannot add more products. Product limit reached.\n");
     }
@@ -66,10 +67,25 @@ void writeProductsToFile(const char *filename, struct Product products[], int nu
         return;
     }
     for (int i = numProducts - 1; i >= 0; i--) {
-        fprintf(file_pointer, "%d,%s,%.2f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
+        fprintf(file_pointer, "%d,%s,%.0f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
     fclose(file_pointer);
-    printf("The data has been saved successfully.\n");
+    //printf("The data has been saved successfully.\n");
+}
+
+// Get the last product ID from the file
+int getLastProductIdFromFile(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return 0;
+    }
+    int lastId = 0;
+    while (fscanf(file, "%d,%*[^,],%*f,%*d\n", &lastId) == 1) {
+        
+    }
+    fclose(file);
+    return lastId;
 }
 
 // Remove PRODUCT 
@@ -80,6 +96,7 @@ void removeProduct(int id) {
                 products[j] = products[j + 1];
             }
             numProducts--;
+            writeProductsToFile(FILE_PATH, products, numProducts);
             printf("Product removed successfully.\n");
             return;
         }
@@ -91,15 +108,62 @@ void removeProduct(int id) {
 void updateProduct(int id, char *newName, float newPrice, int newQuantity) {
     for (int i = 0; i < numProducts; i++) {
         if (products[i].id == id) {
-            strcpy(products[i].name, newName);
-            products[i].price = newPrice;
-            products[i].quantity = newQuantity;
+            // Print old information
+            printf("Old Information of Product with ID %d:\n", id);
+            printf("Name: %s\n", products[i].name);
+            printf("Price: %.0f\n", products[i].price);
+            printf("Quantity: %d\n", products[i].quantity);
+
+            char input[100]; 
+            while (getchar() != '\n');
+            printf("Enter new name (or press Enter to keep old name): ");
+            fgets(input, sizeof(input), stdin);
+            if (strlen(input) > 1) {
+                input[strcspn(input, "\n")] = '\0'; 
+                strcpy(products[i].name, input);
+            } else {
+                printf("The name of the product has been retained.\n");
+            }
+
+            printf("Enter new price (or press Enter to keep old price): ");
+            fgets(input, sizeof(input), stdin);
+            if (strlen(input) > 1) {
+                sscanf(input, "%f", &newPrice);
+                if (newPrice >= 0) {
+                    products[i].price = newPrice;
+                } else {
+                    printf("Error! Please enter a positive number: ");
+                    newPrice = validate_positive_number("Enter new price (or press Enter to keep old price): ");
+                    products[i].price = newPrice;
+                }
+            } else {
+                printf("The price of the product has been retained.\n");
+            }
+
+            printf("Enter new quantity (or press Enter to keep old quantity): ");
+            fgets(input, sizeof(input), stdin);
+            if (strlen(input) > 1) {
+                sscanf(input, "%d", &newQuantity);
+                if (newQuantity >= 0) {
+                    products[i].quantity = newQuantity;
+                } else {
+                    printf("Error! Please enter a positive number: ");
+                    newQuantity = validate_positive_number("Enter new quantity (or press Enter to keep old quantity): ");
+                    products[i].quantity = newQuantity;
+                }
+            } else {
+                printf("The quantity of the product has been retained.\n");
+            }
+
+
+            writeProductsToFile(FILE_PATH, products, numProducts);
             printf("Product updated successfully.\n");
             return;
         }
     }
     printf("Product with ID %d not found.\n", id);
 }
+
 
 // Display list of products 
 void displayProducts() {
@@ -127,15 +191,15 @@ void sortProductsByID() {
 }
 
 // Load products data from file at the beginning of the program
-void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts) {
-    FILE *file = fopen("./src/data/product.txt", "r");
+void loadProductsFromFile(const char *filename) {
+    FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("Error opening file.\n");
         return;
     }
-    while (*numProducts < MAX_PRODUCTS && fscanf(file, "%d,%99[^,],%f,%d\n", 
-    &products[*numProducts].id, products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
-        *numProducts+=1;
+    while (numProducts < MAX_PRODUCTS && fscanf(file, "%d,%49[^,],%f,%d\n", 
+    &products[numProducts].id, products[numProducts].name, &products[numProducts].price, &products[numProducts].quantity) == 4) {
+        numProducts++;
     }
     fclose(file);
     sortProductsByID(); // Sort products by ID in descending order after loading
@@ -144,7 +208,7 @@ void loadProductsFromFile(const char *filename, struct Product *products, int *n
 // Reload products data from file
 void reloadProductsData() {
     numProducts = 0; // Reset the number of products
-    loadProductsFromFile(FILE_PATH, products, &numProducts); // Load products from file 
+    loadProductsFromFile(FILE_PATH); // Load products from file 
 }
 
 // Display product
@@ -176,7 +240,7 @@ void takeProductsFromFile(struct Product products[], int *numProducts) {
 
     // Read data from the file
     while (fscanf(file, "%d,%49[^,],%f,%d\n", &products[*numProducts].id,products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
-        (*numProducts)++; // nó có reset lại đâu ha Minh Lê ha
+        (*numProducts)++;
     }
 
     fclose(file);

@@ -6,8 +6,6 @@
 #include "./src/user/user.h"
 #include "./src/validation.h"
 
-
-
 void mainMenu(int *choice) {
     char usernameUser[50];
     char passwordUser[50];
@@ -24,11 +22,11 @@ void mainMenu(int *choice) {
         if (*choice == 1) { // USER LOGIN
             printf("Enter username: ");
             scanf("%s", usernameUser);
-            printf("Enter password : ");
+            printf("Enter password: ");
             scanf("%s", passwordUser);
 
             FILE *file_pointer;
-            char line[100]; // Used to store each line in the file
+            char line[100]; 
 
             file_pointer = fopen("./src/data/account_user.txt", "r");
             if (file_pointer == NULL) {
@@ -38,7 +36,7 @@ void mainMenu(int *choice) {
 
             while (fgets(line, sizeof(line), file_pointer)) {
                 char stored_username[50];
-                char stored_password[50];
+                char stored_password[50]; 
                 char stored_userid[50];
 
 
@@ -70,7 +68,7 @@ void mainMenu(int *choice) {
             scanf("%s", passwordAdmin);
 
             FILE *file_pointer;
-            char line[100]; // Used to store each line in the file
+            char line[100]; 
 
             file_pointer = fopen("./src/data/account_admin.txt", "r");
             if (file_pointer == NULL) {
@@ -97,15 +95,16 @@ void mainMenu(int *choice) {
                     return;
                 }
             }
-
+            
             printf("Incorrect username or password.\n");
             fclose(file_pointer);
-        } 
+        } else if (*choice == 0) {
+            printf("Successfully exited program.\n");
+            break;
+        }
     } while (choice != 0);
     
 }
-
-
 
 int main() {
     int choice;

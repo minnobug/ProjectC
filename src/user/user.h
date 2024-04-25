@@ -25,7 +25,7 @@ char *generate_cart_id();
 void readDataFromFile(struct Product *products, int *numProducts);
 void saveCartToFile(struct Cart *cart);
 void loadCartFromFile(struct Cart *cart);
-void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
+void loadProductsFromFile(const char *filename);
 void cancel_bill_by_idOrder(int idOrder);
 void display_all_bill_information(int n);
 void display_bill_by_idOrder(int idOrder);

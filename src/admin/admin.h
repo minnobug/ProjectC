@@ -4,8 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../product.h"
-int validate_choice(int min, int max);
-int validate_positive_number();
+
 
 struct Product createProduct(int id, char *name, float price, int quantity);
 void addProduct(struct Product product);
@@ -13,12 +12,14 @@ void writeProductsToFile(const char *filename, struct Product products[], int nu
 void removeProduct(int id);
 void updateProduct(int id, char *newName, float newPrice, int newQuantity);
 void displayProducts();
-int compareProducts(const void *a, const void *b);
 void sortProductsByID();
-void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
+void loadProductsFromFile(const char *filename);
 void reloadProductsData();
 void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename);
+int compareProducts(const void *a, const void *b);
+int validate_choice(int min, int max);
+int validate_positive_number();
 
 
 
@@ -71,6 +72,7 @@ void adminMenu(int choice) {
                 scanf("%d", &id);
                 removeProduct(id);
                 sortProductsByID();
+
                 // Save products to file after removal
                 writeProductsToFile(FILE_PATH, products, numProducts);
                 break;
@@ -84,15 +86,6 @@ void adminMenu(int choice) {
 
                printf("Enter product ID to update: ");
                scanf("%d", &id);
-
-               printf("Enter new product name: ");
-               scanf("%s", name);
-
-               printf("Enter new product price: ");
-               price = validate_positive_number();
-
-               printf("Enter new product quantity: ");
-               quantity = validate_positive_number();
 
                updateProduct(id, name, price, quantity);
 

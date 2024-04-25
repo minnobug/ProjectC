@@ -16,6 +16,7 @@ int validate_choice(int min, int max) {
             // Check characters 
             int c;
             while ((c = getchar()) != '\n' && c != EOF) {
+
                 if (!isspace(c) && !isdigit(c)) {
                     printf("Invalid choice. Please enter a number between %d and %d.\n", min, max);
                     
@@ -34,8 +35,8 @@ int validate_choice(int min, int max) {
 int validate_positive_number() {
     int number;
     do {
-        if (scanf("%d", &number) != 1 || number <= 0) {
-            printf("Error! Please enter a positive number: ");
+        if (scanf("%d", &number) != 1 || number <= 0) { 
+            printf("Error! Please enter a positive number: "); 
             // Clear input buffer
             int c;
             while ((c = getchar()) != '\n' && c != EOF);
@@ -60,4 +61,5 @@ int validate_positive_number() {
         }
     } while (1); // Continue looping until valid input is provided
 }
+
 
