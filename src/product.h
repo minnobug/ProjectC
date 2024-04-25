@@ -13,7 +13,6 @@ struct Product {
     int quantity;
 };
 
-
 struct Product createProduct(int id, char *name, float price, int quantity);
 void addProduct(struct Product product);
 void writeProductsToFile(const char *filename, struct Product products[], int numProducts);
@@ -28,7 +27,6 @@ void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename);
 void displayAvailableProducts(struct Product products[], int numProducts);
 void takeProductsFromFile(struct Product products[], int *numProducts);
-
 
 
 struct Product products[MAX_PRODUCTS];
@@ -109,9 +107,9 @@ void displayProducts() {
         return;
     }
     printf("List of Products:\n");
-    printf("%-5s %-20s %-10s %-10s\n", "ID of Product", "Name", "Price", "Quantity");
+    printf("%-15s %-20s %-20s %-10s\n", "ID of Product", "Name", "Price", "Quantity");
     for (int i = numProducts - 1; i >= 0; i--) {
-        printf("%-5d %-20s %-10.2f %-10d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
+        printf("%-15d %-20s %-20.0f %-10d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
 }
 
@@ -150,7 +148,7 @@ void reloadProductsData() {
 
 // Display product
 void displayProduct(struct Product product) {
-    printf("ID of Product: %d | Name: %s | Price: %.0f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
+    printf("ID of Product\t: %d | Name\t: %s | Price\t: %.0f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
 }
 
 // Read products from text file

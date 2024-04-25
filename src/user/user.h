@@ -4,13 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-//#include "../product.h"
+
 
 #define MAX_CART 100
 #define MAX_PRODUCTS 100
 #define CART_ID_LENGTH 10
 
 int validate_choice(int min, int max);
+struct Order;
 struct Product;
 struct Cart;
 void displayProduct(struct Product product);
@@ -21,12 +22,18 @@ void addProductToCart(struct Cart *cart, struct Product product);
 void removeProductFromCart(struct Cart *cart, int id);
 void updateProductQuantity(struct Cart *cart, int id, int newQuantity);
 char *generate_cart_id();
-void readDataFromFile(struct Product products[], int *numProducts);
+void readDataFromFile(struct Product *products, int *numProducts);
 void saveCartToFile(struct Cart *cart);
 void loadCartFromFile(struct Cart *cart);
 void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
+void create_bill(struct Order *numbers, int n);
+void cancel_bill_by_idOrder(int idOrder);
+void update_bill_by_idOrder(struct Order *count, int n, int id);
+void display_all_bill_information(int n);
+void display_bill_by_idOrder(int idOrder);
+struct Product listProduct[1001];
 
-
+          
 typedef struct Cart {
     char cart_id[CART_ID_LENGTH + 1];
     struct Product products[MAX_CART];
@@ -69,53 +76,60 @@ void readDataFromFile(struct Product products[], int *numProducts) {
     FILE *file = fopen("./src/data/product.txt", "r");
     if (file == NULL) {
         printf("Error opening file!\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     // Read data from the file
-    while (fscanf(file, "%d,%49[^,],%f,%d\n", &products[*numProducts].id,
-                  products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
+    while (*numProducts < MAX_CART &&
+           fscanf(file, "%d,%49[^,],%f,%d\n",
+                  &products[*numProducts].id,
+                  products[*numProducts].name,
+                  &products[*numProducts].price,
+                  &products[*numProducts].quantity) == 4) {
         (*numProducts)++;
+    }
+
+    if (*numProducts == MAX_CART) {
+        printf("Warning: Maximum number of products reached. Some products might not have been loaded.\n");
     }
 
     fclose(file);
 }
 
-// Save cart data to file
+
+// Save cart data to file // them CARD ID vao day
 void saveCartToFile(struct Cart *cart) {
     FILE *file = fopen("./src/data/cart.txt", "w");
     if (file == NULL) {
         printf("Error opening file!\n");
         exit(1);
     }
+    // Ghi cart ID vai file
+    fprintf(file, "Cart ID: %s\n", cart->cart_id);
 
-    fprintf(file, "%s\n", cart->cart_id);
     for (int i = 0; i < cart->count; i++) {
-        fprintf(file, "%d,%d", cart->products[i].id, cart->products[i].quantity);
-        if (i < cart->count - 1) {
-          fprintf(file, "\n");
-        }
+        fprintf(file, "%d,%d\n", cart->products[i].id, cart->products[i].quantity);
     }
 
     fclose(file);
-}
+ }
 
 // Load cart data from file
 void loadCartFromFile(Cart *cart) {
-    FILE *file = fopen("./src/data/cart.txt", "r");
+    FILE *file = fopen("cart.txt", "r");
     if (file == NULL) {
         printf("Error opening file!\n");
         exit(1);
     }
 
+    // read id from file
     fscanf(file, "%s", cart->cart_id);
-    while (fscanf(file, "%d,%d", &cart->products[cart->count].id, &cart->products[cart->count].quantity) == 2) {
+
+    // read data product from file and save cart
+	    while (fscanf(file, "%d %s %f %d", &cart->products[cart->count].id, cart->products[cart->count].name, &cart->products[cart->count].price, &cart->products[cart->count].quantity) == 4) {
         cart->count++;
-    }
-
-    fclose(file);
+     }
 }
-
 // display cart
 void displayCart(struct Cart cart) {
   if (cart.count == 0) {
@@ -232,8 +246,11 @@ void userMenu() {
                             struct Product newProduct;
                             printf("Enter the product ID: ");
                             scanf("%d", &newProduct.id);
+                            
+
                             printf("Enter the quantity of the product: ");
                             scanf("%d", &newProduct.quantity);
+                            
 
                             for (int i = 0; i < numProducts; i++) {
                               if(newProduct.id == products[i].id) {
@@ -286,6 +303,9 @@ void userMenu() {
 
             case 2: {
                 int orderChoice;
+                int n = 1;
+                int ID;
+                struct Order order;
                 do {
                   printf("\nMenu - Order Management:\n");
                   printf("\t1. Create order\n");
@@ -294,6 +314,46 @@ void userMenu() {
                   printf("\t4. Display information of order\n");
                   printf("\t0. Exit\n");
                   orderChoice = validate_choice(0, 4);
+
+                  switch (orderChoice) {
+                     case 1:
+                        if (n < 100) {
+                          create_bill(&order, n);
+                          n++;
+                        } else {
+                          printf("Maximum number of orders reached.\n");
+                        }
+                     break;
+                     case 2:
+                         if (n > 0) {
+                             printf("Enter file ID of Bill to cancel: ");
+                             scanf("%d", &ID);
+                             getchar();
+                             cancel_bill_by_idOrder(ID);
+                         } else {
+                             printf("No orders to cancel.\n");
+                         }
+                        break;
+                        case 3:
+                            printf("Enter file ID of Bill to update: ");
+                            scanf("%d", &ID);
+                            getchar();
+                            update_bill_by_idOrder(&order, n, ID);
+                         break;
+                         case 4:
+                            display_all_bill_information(n);
+                         break;
+                        case 5:
+                            printf("Enter the file ID of the bill to display: ");
+                            scanf("%d", &ID);
+                            getchar();
+                            display_bill_by_idOrder(ID);
+                        break;
+            
+                        default:
+                        printf("Invalid choice.\n");
+                        break;
+                      }
                 } while (orderChoice != 0);
                 break;
               }

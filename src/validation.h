@@ -35,14 +35,14 @@ int validate_positive_number() {
     do {
         scanf("%d", &number);
         if (number <= 0) {
-            printf("Invalid choice. Please enter a positive number: ");
+            printf("Error! Please enter a positive number: ");
         } else {
             // Check characters 
             int c;
             while ((c = getchar()) != '\n' && c != EOF) {
                 if (!isspace(c) && !isdigit(c)) {
-                    printf("Invalid choice. Please enter a positive number.\n");
-                    
+                    printf("Error! Please enter a positive number.\n");
+                   
                     while ((c = getchar()) != '\n' && c != EOF);
                     break;
                 }
@@ -50,4 +50,18 @@ int validate_positive_number() {
         }
     } while (number <= 0);
     return number;
+}
+
+int validatePhoneNumber(const char *phoneNumber) {
+    int len = strlen(phoneNumber);
+    if (len != 10) return 0; 
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(phoneNumber[i])) return 0;
+    }
+    return 1;
+}
+
+int validateDate(char *date) {
+    int len = strlen(date);
+    return len == 10 && date[2] == '/' && date[5] == '/';
 }

@@ -5,7 +5,7 @@
 #include "./src/admin/admin.h"
 #include "./src/user/user.h"
 #include "./src/validation.h"
-
+#include "./src/order.h"
 
 void mainMenu(int choice) {
     char usernameUser[50];
@@ -14,7 +14,7 @@ void mainMenu(int choice) {
     char passwordAdmin[50];
 
     do {
-        printf("MENU\n");
+        printf("===MENU===\n");
         printf("\t1. User\n");
         printf("\t2. Admin\n");
         printf("\t0. Exit\n");
@@ -99,8 +99,10 @@ void mainMenu(int choice) {
 
             printf("Incorrect username or password.\n");
             fclose(file_pointer);
-        }
+        } 
     } while (choice != 0);
+ 
+    
 }
 
 
@@ -110,6 +112,5 @@ int main() {
     do {
         mainMenu(choice);
     } while (choice != 0);
-
     return 0;
 }
