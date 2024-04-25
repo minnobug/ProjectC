@@ -30,25 +30,34 @@ int validate_choice(int min, int max) {
     }
 }
 
+
 int validate_positive_number() {
     int number;
     do {
-        scanf("%d", &number);
-        if (number <= 0) {
+        if (scanf("%d", &number) != 1 || number <= 0) {
             printf("Error! Please enter a positive number: ");
+            // Clear input buffer
+            int c;
+            while ((c = getchar()) != '\n' && c != EOF);
         } else {
             // Check characters 
             int c;
             while ((c = getchar()) != '\n' && c != EOF) {
                 if (!isspace(c) && !isdigit(c)) {
-                    printf("Error! Please enter a positive number.\n");
-                   
+                    printf("Invalid choice. Please enter a positive number.\n");
+                    // Clear input buffer
                     while ((c = getchar()) != '\n' && c != EOF);
                     break;
                 }
             }
+            // If valid input and end of line or end of file reached, return the number
+            if (c == '\n' || c == EOF) {
+                return number;
+            } else {
+                // If characters other than newline or EOF were found, prompt for input again
+                printf("Invalid choice. Please enter a positive number.\n");
+            }
         }
-    } while (number <= 0);
-    return number;
+    } while (1); // Continue looping until valid input is provided
 }
 

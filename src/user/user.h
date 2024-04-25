@@ -399,7 +399,7 @@ void cancel_bill_by_idOrder(int idOrder) {
 
 void update_bill_by_idOrder(struct Order *count, int n, int id) {
     char fileName[20];
-    sprintf(fileName, "src/data/bill/BillNumber%d.txt", id);
+    snprintf(fileName, sizeof(fileName), "src/data/bill/BillNumber%d.txt", id);
     FILE *file = fopen(fileName, "r");
     if (file == NULL) {
         printf("Error: File '%s' not found.\n", fileName);

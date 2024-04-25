@@ -8,20 +8,20 @@
 
 
 
-void mainMenu(int choice) {
+void mainMenu(int *choice) {
     char usernameUser[50];
     char passwordUser[50];
     char usernameAdmin[50];
     char passwordAdmin[50];
 
     do {
-        printf("===MENU===\n");
-        printf("\t1. User\n");
-        printf("\t2. Admin\n");
-        printf("\t0. Exit\n");
-        choice = validate_choice(0, 2);
+        printf("======MENU======\n");
+        printf("1. User\n");
+        printf("2. Admin\n");
+        printf("0. Exit\n");
+        *choice = validate_choice(0, 2);
 
-        if (choice == 1) { // USER LOGIN
+        if (*choice == 1) { // USER LOGIN
             printf("Enter username: ");
             scanf("%s", usernameUser);
             printf("Enter password : ");
@@ -63,7 +63,7 @@ void mainMenu(int choice) {
             printf("Incorrect username or password.\n");
             fclose(file_pointer);
             
-        } else if (choice == 2) { // ADMIN LOGIN
+        } else if (*choice == 2) { // ADMIN LOGIN
             printf("Enter username: ");
             scanf("%s", usernameAdmin);
             printf("Enter password: ");
@@ -92,7 +92,7 @@ void mainMenu(int choice) {
 
                 if (strcmp(usernameAdmin, stored_username) == 0 && strcmp(passwordAdmin, stored_password) == 0) {
                     printf("Login successfully.\n");
-                      adminMenu(choice);
+                      adminMenu(*choice);
                     fclose(file_pointer);
                     return;
                 }
@@ -102,7 +102,6 @@ void mainMenu(int choice) {
             fclose(file_pointer);
         } 
     } while (choice != 0);
- 
     
 }
 
@@ -111,7 +110,7 @@ void mainMenu(int choice) {
 int main() {
     int choice;
     do {
-        mainMenu(choice);
+        mainMenu(&choice);
     } while (choice != 0);
     return 0;
 }
