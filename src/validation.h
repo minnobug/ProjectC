@@ -52,16 +52,3 @@ int validate_positive_number() {
     return number;
 }
 
-int validatePhoneNumber(const char *phoneNumber) {
-    int len = strlen(phoneNumber);
-    if (len != 10) return 0; 
-    for (int i = 0; i < len; i++) {
-        if (!isdigit(phoneNumber[i])) return 0;
-    }
-    return 1;
-}
-
-int validateDate(char *date) {
-    int len = strlen(date);
-    return len == 10 && date[2] == '/' && date[5] == '/';
-}

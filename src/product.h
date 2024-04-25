@@ -8,7 +8,8 @@
 // PRODUCT
 struct Product {
     int id;
-    char name[100];
+    char name[50];
+    char manufacturer[50];
     float price;
     int quantity;
 };
@@ -169,13 +170,13 @@ void displayProductsFromFile(const char *filename) {
 void takeProductsFromFile(struct Product products[], int *numProducts) {
     FILE *file = fopen("./src/data/product.txt", "r");
     if (file == NULL) {
-        printf("Error opening file!\n");
+        printf("Error opening file123!\n");
         exit(1);
     }
 
     // Read data from the file
     while (fscanf(file, "%d,%49[^,],%f,%d\n", &products[*numProducts].id,products[*numProducts].name, &products[*numProducts].price, &products[*numProducts].quantity) == 4) {
-        (*numProducts)++;
+        (*numProducts)++; // nó có reset lại đâu ha Minh Lê ha
     }
 
     fclose(file);

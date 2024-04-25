@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <string.h>
+#include <ctype.h>
 
 #define MAX_CART 100
 #define MAX_PRODUCTS 100
 #define CART_ID_LENGTH 10
 
-int validate_choice(int min, int max);
-struct Order;
+
 struct Product;
 struct Cart;
 void displayProduct(struct Product product);
@@ -26,25 +26,26 @@ void readDataFromFile(struct Product *products, int *numProducts);
 void saveCartToFile(struct Cart *cart);
 void loadCartFromFile(struct Cart *cart);
 void loadProductsFromFile(const char *filename, struct Product *products, int *numProducts);
-void create_bill(struct Order *numbers, int n);
+//void create_bill(struct Order *numbers, int n);
 void cancel_bill_by_idOrder(int idOrder);
-void update_bill_by_idOrder(struct Order *count, int n, int id);
+//void update_bill_by_idOrder(struct Order *count, int n, int id);
 void display_all_bill_information(int n);
 void display_bill_by_idOrder(int idOrder);
-struct Product listProduct[1001];
+int validate_choice(int min, int max);
 
-          
-typedef struct Cart {
+
+//CART       
+struct Cart {
     char cart_id[CART_ID_LENGTH + 1];
     struct Product products[MAX_CART];
     int count;
-} Cart;
+};
 
 struct Cart cart;
 int numCarts = 0;
 
 // Initialize cart
-void initCart(Cart *cart) {
+void initCart(struct Cart *cart) {
     cart->count = 0;
 }
 
@@ -115,8 +116,8 @@ void saveCartToFile(struct Cart *cart) {
  }
 
 // Load cart data from file
-void loadCartFromFile(Cart *cart) {
-    FILE *file = fopen("cart.txt", "r");
+void loadCartFromFile(struct Cart *cart) {
+    FILE *file = fopen("./src/data/cart.txt", "r");
     if (file == NULL) {
         printf("Error opening file!\n");
         exit(1);
@@ -207,6 +208,307 @@ void updateProductQuantity(struct Cart *cart, int id, int newQuantity) {
   printf("Product quantity updated successfully!\n");
 }
 
+//ORDER
+struct Order;
+int validatePhoneNumber(const char *phoneNumber);
+int validateDate(char *date);
+void read_cart_from_file(const char *filename, struct Order *order);
+void read_order_from_file(const char *filename, struct Order *orders);
+void write_order_to_file(const char *filename, struct Order *order);
+void remove_newline(char *str);
+void enter_bill_information(struct Order *x, int billID);
+void create_bill(struct Order *numbers, int n);
+void cancel_bill_by_idOrder(int idOrder);
+void update_bill_by_idOrder(struct Order *count, int n, int id);
+void display_all_bill_information(int n);
+void display_bill_by_idOrder(int idOrder);
+
+
+struct Order {
+    int idOrder;
+    char customerName[50];
+    char address[100];
+    char phoneNumber[15];
+    char purchaseDate[11];
+    struct Product products[MAX_CART];
+    int productCount;
+    float totalPrice;
+    char paymentMethod[20];
+    char paymentStatus[20];
+    float productPrice;
+};
+
+int validatePhoneNumber(const char *phoneNumber) {
+    int len = strlen(phoneNumber);
+    if (len != 10) return 0; 
+    for (int i = 0; i < len; i++) {
+        if (!isdigit(phoneNumber[i])) return 0;
+    }
+    return 1;
+}
+
+int validateDate(char *date) {
+    int len = strlen(date);
+    return len == 10 && date[2] == '/' && date[5] == '/';
+}
+
+void read_cart_from_file(const char *filename, struct Order *order) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Can't open' %s.\n", filename);
+        return;
+    }
+    struct Product product;
+    int n = 0;
+    while (fscanf(file, "%d %s %f %d", &product.id,
+                  product.name,
+                  &product.price,
+                  &product.quantity) != EOF) {
+        order->products[n] = product;
+        printf("ID: %d \n Name: %s \n Price: %.2f \n Quantity: %d\n", order->products[n].id, order->products[n].name, order->products[n].price, order->products[n].quantity);
+        n++;
+    }
+    order->productCount = n;
+    fclose(file);
+}
+
+void read_order_from_file(const char *filename, struct Order *orders) {
+    FILE *file = fopen("src/data/bill/BillNumber%d.txt", "r");
+    if (file == NULL) {
+        printf("Can't open file '%s'.\n", filename);
+        return;
+    }
+
+    int n = 0;
+    while (fscanf(file, "%d,%[^,],%[^,],%s,%s",
+                  &orders[n].idOrder,
+                  orders[n].purchaseDate,
+                  orders[n].customerName,
+                  orders[n].address,
+                  orders[n].phoneNumber) != EOF) {
+        printf("Bill ID: %d\n", orders[n].idOrder);
+        printf("Purchase Date: %s\n", orders[n].purchaseDate);
+        printf("Customer's Name: %s\n", orders[n].customerName);
+        printf("Customer's Address: %s\n", orders[n].address);
+        printf("Customer's Phone Number: %s\n", orders[n].phoneNumber);
+        n++;
+    }
+    fclose(file);
+    printf("Read %d orders from file '%s'.\n", n, filename);
+}
+
+
+void writeOrderToFile(const char *filename, struct Order *order, int n) {
+    char fileName[100];
+    sprintf(fileName, "src/data/bill/BillNumber%d.txt", n);
+    FILE *file = fopen(fileName, "w");
+    if (file == NULL) {
+        printf("Error opening file.\n");
+        return;
+    }
+
+    fprintf(file, "%d,%s,%s,%s,%s\n", order->idOrder,
+            order->purchaseDate,
+            order->customerName,
+            order->address,
+            order->phoneNumber);
+
+    for (int i = 0; i < order->productCount; i++) {
+        fprintf(file, "%d,%s,%.2f,%d\n", order->products[i].id,
+                order->products[i].name,
+                order->products[i].price,
+                order->products[i].quantity);
+    }
+
+    fclose(file);
+    printf("The data has been saved successfully.\n");
+}
+
+void removeNewline(char *str) {
+    int len = strlen(str);
+    if (len > 0 && str[len - 1] == '\n') {
+        str[len - 1] = '\0'; // Replace '\n' with '\0'
+    }
+}
+
+void enter_Bill_Information(struct Order *x, int n, int billID) {
+    x->idOrder = billID; 
+    int check = 1;
+    printf("Enter purchase date (DD/MM/YYYY): ");
+    fgets(x->purchaseDate, sizeof(x->purchaseDate), stdin);
+    fflush(stdin);
+    while (check == 1) {
+        if (!validateDate(x->purchaseDate)) {
+            printf("Invalid date format. Please use DD/MM/YYYY.\n");
+            printf("Rewrite purchase date.\n");
+            fgets(x->purchaseDate, sizeof(x->purchaseDate), stdin);
+            fflush(stdin);
+        } else {
+            check += 1;
+        }
+    }
+    printf("Enter customer's name: ");
+    fgets(x->customerName, sizeof(x->customerName), stdin);
+    removeNewline(x->customerName);
+    fflush(stdin);
+    printf("Enter customer's address: ");
+    fgets(x->address, sizeof(x->address), stdin);
+    removeNewline(x->address);
+    fflush(stdin);
+    
+    
+    do {
+        printf("Enter customer's phone number (10 digits): ");
+        fgets(x->phoneNumber, sizeof(x->phoneNumber), stdin);
+        removeNewline(x->phoneNumber);
+        fflush(stdin);
+    } while (!validatePhoneNumber(x->phoneNumber)); 
+}
+
+void create_bill(struct Order *numbers, int n) {
+  
+    int billID = 1;
+    while (1) {
+        char fileName[100];
+        sprintf(fileName, "src/data/bill/BillNumber%d.txt", billID);
+        FILE *file = fopen(fileName, "r");
+        if (file == NULL) {
+           
+            fclose(file);
+            break;
+        } else {
+           
+            fclose(file);
+            billID++;
+        }
+    }
+    char fileName[100];
+    sprintf(fileName, "src/data/bill/BillNumber%d.txt", billID);
+    printf("Your ID bill is: %d\n", billID);
+    enter_Bill_Information(&numbers[billID], n, billID); 
+    writeOrderToFile(fileName, &numbers[billID], billID);
+}
+
+void cancel_bill_by_idOrder(int idOrder) {
+    char fileName[100];
+    sprintf(fileName, "src/data/bill/BillNumber%d.txt", idOrder);
+    if (remove(fileName) == 0) {
+        printf("File 'BillNumber%d.txt' deleted successfully.\n", idOrder);
+    } else {
+        printf("Error deleting file 'BillNumber%d.txt': File not found.\n", idOrder);
+    }
+}
+
+void update_bill_by_idOrder(struct Order *count, int n, int id) {
+    char fileName[20];
+    sprintf(fileName, "src/data/bill/BillNumber%d.txt", id);
+    FILE *file = fopen(fileName, "r");
+    if (file == NULL) {
+        printf("Error: File '%s' not found.\n", fileName);
+        return;
+    }
+
+    struct Order order;
+    fscanf(file, "%d,%[^,],%[^,],%[^,],%[^,],%d\n", &order.idOrder,
+           order.purchaseDate,
+           order.customerName,
+           order.address,
+           order.phoneNumber,
+           &order.productCount);
+
+    printf("\nCurrent Bill Information:\n");
+    printf("Bill ID: %d\n", order.idOrder);
+    printf("Purchase Date: %s\n", order.purchaseDate);
+    printf("Customer's Name: %s\n", order.customerName);
+    printf("Customer's Address: %s\n", order.address);
+    printf("Customer's Phone Number: %s\n", order.phoneNumber);
+    
+    fclose(file);
+
+    
+    printf("\nEnter new information:\n");
+    enter_Bill_Information(&count[id], n, id);
+
+    
+    writeOrderToFile(fileName, &count[id], id);
+}
+
+void display_all_bill_information(int n) {
+    for (int i = 1; i < MAX_PRODUCTS; i++) {
+        char fileName[100];
+        sprintf(fileName, "src/data/bill/BillNumber%d.txt", i);
+        FILE *file = fopen(fileName, "r");
+        if (file != NULL) {
+            struct Order order;
+            fscanf(file, "%d,%[^,],%[^,],%[^,],%[^,],%d\n", &order.idOrder,
+                   order.purchaseDate,
+                   order.customerName,
+                   order.address,
+                   order.phoneNumber,
+                   &order.productCount);
+
+            printf("\n----- Bill %d -----\n", i);
+            printf("Bill ID: %d\n", order.idOrder);
+            printf("Purchase Date: %s\n", order.purchaseDate);
+            printf("Customer's Name: %s\n", order.customerName);
+            printf("Customer's Address: %s\n", order.address);
+            printf("Customer's Phone Number: %s\n", order.phoneNumber);
+
+            for (int j = 0; j < order.productCount; j++) {
+                fscanf(file, "%d,%[^,],%f,%d\n", &order.products[j].id,
+                       order.products[j].name,
+                       &order.products[j].price,
+                       &order.products[j].quantity);
+                printf("Product ID: %d\n", order.products[j].id);
+                printf("Product Name: %s\n", order.products[j].name);
+                printf("Product Price: %.2f\n", order.products[j].price);
+                printf("Product Quantity: %d\n", order.products[j].quantity);
+            }
+            fclose(file);
+        }
+    }
+}
+
+void display_bill_by_idOrder(int idOrder) {
+    char fileName[100];
+    sprintf(fileName, "src/data/bill/BillNumber%d.txt", idOrder);
+    FILE *file = fopen(fileName, "r");
+    if (file == NULL) {
+        printf("Error: File '%s' not found.\n", fileName);
+        return;
+    }
+
+    struct Order order;
+    fscanf(file, "%d,%[^,],%[^,],%[^,],%[^,],%d\n", &order.idOrder,
+           order.purchaseDate,
+           order.customerName,
+           order.address,
+           order.phoneNumber,
+           &order.productCount);
+
+    printf("\n----- Bill %d -----\n", idOrder);
+    printf("Bill ID: %d\n", order.idOrder);
+    printf("Purchase Date: %s\n", order.purchaseDate);
+    printf("Customer's Name: %s\n", order.customerName);
+    printf("Customer's Address: %s\n", order.address);
+    printf("Customer's Phone Number: %s\n", order.phoneNumber);
+
+    for (int j = 0; j < order.productCount; j++) {
+        fscanf(file, "%d,%[^,],%f,%d\n", &order.products[j].id,
+               order.products[j].name,
+               &order.products[j].price,
+               &order.products[j].quantity);
+        printf("Product ID: %d\n", order.products[j].id);
+        printf("Product Name: %s\n", order.products[j].name);
+        printf("Product Price: %.2f\n", order.products[j].price);
+        printf("Product Quantity: %d\n", order.products[j].quantity);
+    }
+    fclose(file);
+}
+
+
+
+// MENU
 void userMenu() {
     int choice;
     do {
@@ -219,7 +521,7 @@ void userMenu() {
         switch (choice) {
             case 1: {
                 initCart(&cart);
-                
+
                 // Take product data from the file
                 takeProductsFromFile(products, &numProducts);
     
@@ -283,6 +585,7 @@ void userMenu() {
                             break;
                         }
                         case 5:
+                          
                             // Display available products
                             displayAvailableProducts(products, numProducts);
                             break;
@@ -304,8 +607,8 @@ void userMenu() {
             case 2: {
                 int orderChoice;
                 int n = 1;
+                struct Order NumberOrder[100];
                 int ID;
-                struct Order order;
                 do {
                   printf("\nMenu - Order Management:\n");
                   printf("\t1. Create order\n");
@@ -316,9 +619,9 @@ void userMenu() {
                   orderChoice = validate_choice(0, 4);
 
                   switch (orderChoice) {
-                     case 1:
+                     case 1: 
                         if (n < 100) {
-                          create_bill(&order, n);
+                          create_bill(NumberOrder, n);
                           n++;
                         } else {
                           printf("Maximum number of orders reached.\n");
@@ -338,7 +641,7 @@ void userMenu() {
                             printf("Enter file ID of Bill to update: ");
                             scanf("%d", &ID);
                             getchar();
-                            update_bill_by_idOrder(&order, n, ID);
+                            update_bill_by_idOrder(NumberOrder, n, ID);
                          break;
                          case 4:
                             display_all_bill_information(n);
