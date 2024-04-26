@@ -1,34 +1,32 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "./src/admin/admin.h"
 #include "./src/user/user.h"
+#include "./src/validation.h"
 
-void mainMenu() {
-    int choice;
+void mainMenu(int *choice) {
     char usernameUser[50];
     char passwordUser[50];
     char usernameAdmin[50];
     char passwordAdmin[50];
 
     do {
-        printf("MENU\n");
-        printf("\t1. User\n");
-        printf("\t2. Admin\n");
-        printf("\t0. Exit\n");
-        printf("Your choice: ");
-        scanf("%d", &choice);
+        printf("======MENU======\n");
+        printf("1. User\n");
+        printf("2. Admin\n");
+        printf("0. Exit\n");
+        *choice = validate_choice(0, 2);
 
-        if (choice == 1) { // USER LOGIN
+        if (*choice == 1) { // USER LOGIN
             printf("Enter username: ");
             scanf("%s", usernameUser);
-            printf("Enter password : ");
+            printf("Enter password: ");
             scanf("%s", passwordUser);
 
             FILE *file_pointer;
-            char line[100]; // Used to store each line in the file
+            char line[100]; 
 
             file_pointer = fopen("./src/data/account_user.txt", "r");
             if (file_pointer == NULL) {
@@ -38,7 +36,7 @@ void mainMenu() {
 
             while (fgets(line, sizeof(line), file_pointer)) {
                 char stored_username[50];
-                char stored_password[50];
+                char stored_password[50]; 
                 char stored_userid[50];
 
 
@@ -63,14 +61,14 @@ void mainMenu() {
             printf("Incorrect username or password.\n");
             fclose(file_pointer);
             
-        } else if (choice == 2) { // ADMIN LOGIN
+        } else if (*choice == 2) { // ADMIN LOGIN
             printf("Enter username: ");
             scanf("%s", usernameAdmin);
             printf("Enter password: ");
             scanf("%s", passwordAdmin);
 
             FILE *file_pointer;
-            char line[100]; // Used to store each line in the file
+            char line[100]; 
 
             file_pointer = fopen("./src/data/account_admin.txt", "r");
             if (file_pointer == NULL) {
@@ -91,20 +89,27 @@ void mainMenu() {
                 stored_password[strcspn(stored_password, "\n")] = '\0';
 
                 if (strcmp(usernameAdmin, stored_username) == 0 && strcmp(passwordAdmin, stored_password) == 0) {
-                    printf("Login successful.\n");
-                    adminMenu();
+                    printf("Login successfully.\n");
+                      adminMenu(*choice);
                     fclose(file_pointer);
                     return;
                 }
             }
-
+            
             printf("Incorrect username or password.\n");
             fclose(file_pointer);
+        } else if (*choice == 0) {
+            printf("Successfully exited program.\n");
+            break;
         }
     } while (choice != 0);
+    
 }
 
 int main() {
-    mainMenu();
+    int choice;
+    do {
+        mainMenu(&choice);
+    } while (choice != 0);
     return 0;
 }
