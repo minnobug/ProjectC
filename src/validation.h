@@ -36,7 +36,7 @@ int validate_positive_number() {
     int number;
     do {
         if (scanf("%d", &number) != 1 || number <= 0) { 
-            printf("Error! Please enter a positive number: "); 
+            printf("Error! Please enter a number: "); 
             // Clear input buffer
             int c;
             while ((c = getchar()) != '\n' && c != EOF);
@@ -44,8 +44,9 @@ int validate_positive_number() {
             // Check characters 
             int c;
             while ((c = getchar()) != '\n' && c != EOF) {
+                //printf("Kiểu dữ liệu của biến c là: %c\n", c);
                 if (!isspace(c) && !isdigit(c)) {
-                    printf("Invalid choice. Please enter a positive number.\n");
+                    printf("Invalid choice. Please enter a number.\n");
                     // Clear input buffer
                     while ((c = getchar()) != '\n' && c != EOF);
                     break;

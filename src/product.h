@@ -102,7 +102,7 @@ void removeProduct(int id) {
             return;
         }
     }
-    printf("Product with ID %d not found.\n", id);
+    printf("ID of product not found.\n");
 }
 
 // Update PRODUCT
@@ -162,7 +162,7 @@ void updateProduct(int id, char *newName, float newPrice, int newQuantity) {
             return;
         }
     }
-    printf("Product with ID %d not found.\n", id);
+    printf("ID of product not found.\n");
 }
 
 
@@ -175,7 +175,7 @@ void displayProducts() {
     printf("List of Products:\n");
     printf("%-15s %-20s %-30s %-20s\n", "ID of Product", "Name", "Price", "Quantity");
     for (int i = numProducts - 1; i >= 0; i--) {
-        printf("%-15d %-20s %-35.0f %-20d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
+        printf("%-15d %-20s %-35.0f %-15d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
 }
 
@@ -236,7 +236,7 @@ void displayProductsFromFile(const char *filename) {
 void takeProductsFromFile(struct Product products[], int *numProducts) {
     FILE *file = fopen("./src/data/product.txt", "r");
     if (file == NULL) {
-        printf("Error opening file123!\n");
+        printf("Error opening file!\n");
         exit(1);
     }
 
