@@ -19,7 +19,6 @@ void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename); 
 void initCart( struct Cart *cart);
 void displayCart(struct Cart cart);
-//void addProductToCart(struct Cart *cart, struct Product product);
 void addProductToCart(struct Cart *cart, struct Product *products, int numProducts, struct Product newProduct);
 void removeProductFromCart(struct Cart *cart, int id);
 void updateProductQuantity(struct Cart *cart, int id, int newQuantity);
@@ -287,7 +286,7 @@ void updateProductQuantity(struct Cart *cart, int id, int newQuantity) {
 struct Order;
 int validatePhoneNumber(const char *phoneNumber);
 int validateDate(char *date);
-void read_cart_from_file(const char *filename, struct Order *order);
+void read_cart_from_file(char IDOrder);
 void read_order_from_file(const char *filename, struct Order *orders);
 void write_order_to_file(const char *filename, struct Order *order);
 void remove_newline(char *str);
@@ -327,23 +326,41 @@ int validateDate(char *date) {
     return len == 10 && date[2] == '/' && date[5] == '/';
 }
 
-void read_cart_from_file(const char *filename, struct Order *order) {
-    FILE *file = fopen(filename, "r");
+void read_cart_from_file(char IDOrder) {
+    FILE *file = fopen("cart.txt", "r");
     if (file == NULL) {
-        printf("Can't open' %s.\n", filename);
+        printf("Cannot open 'cart.txt'.\n");
         return;
     }
+
     struct Product product;
-    int n = 0;
-    while (fscanf(file, "%d %s %f %d", &product.id,
-                  product.name,
-                  &product.price,
-                  &product.quantity) != EOF) {
-        order->products[n] = product;
-        printf("ID: %d \n Name: %s \n Price: %.2f \n Quantity: %d\n", order->products[n].id, order->products[n].name, order->products[n].price, order->products[n].quantity);
-        n++;
+    int found = 0;
+    char line[100]; // Buffer to store each line read from the file
+
+ while (fgets(line, sizeof(line), file) != NULL) {
+    // Check if the first character of the line matches IDOrder
+    if (line[0] == IDOrder) {
+        // Parse the line to get product information
+        if (sscanf(line,"%d,%[^,],%f,%d",
+                   &product.cartID,
+                   product.name,
+                   &product.price,
+                   &product.quantity) == 4)	  {
+           // printf("Cart ID: %d\n", product.id);
+            printf("Product Name: %s\n", product.name);
+            printf("Price: %.2f\n", product.price);
+            printf("Quantity: %d\n", product.quantity);
+            float total;
+            total = product.price*product.quantity;
+            printf("Total price: %.2f\n",total);
+            found = 1; 
+            break; 
+        } else {
+        }
+    } else {
     }
-    order->productCount = n;
+}
+    if (found != 1) printf("Cart with ID %c not found.\n", IDOrder);
     fclose(file);
 }
 

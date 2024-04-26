@@ -40,12 +40,34 @@ void adminMenu(int choice) {
                 int id, quantity;
                 float price;
                 char name[100];
+                int is_valid = 0; // Biến để kiểm tra xem tên sản phẩm đã hợp lệ chưa
+                while (!is_valid) {
+                    printf("Enter product name: ");
+                    fgets(name, sizeof(name), stdin);
+                    // Loại bỏ dấu xuống dòng nếu có
+                    name[strcspn(name, "\n")] = '\0';
+                    // Kiểm tra xem tên sản phẩm có chứa ký tự nào không
+                    if (strlen(name) == 0) {
+                         printf("Product name cannot be empty. Please try again.\n");
+                    }
+                    else {
+                        // Kiểm tra xem tên sản phẩm có bao gồm toàn ký tự dấu cách không
+                           int i, all_spaces = 1;
+                           for (i = 0; i < strlen(name); i++) {
+                               if (name[i] != ' ') {
+                                   all_spaces = 0;
+                                  break;
+                                }
+                           }
 
-                printf("Enter product name: ");
-                fgets(name, sizeof(name), stdin);
-                name[strcspn(name, "\n")] = '\0';
-                
-
+                          if (all_spaces) {
+                               printf("Product name cannot consist of only spaces. Please try again.\n");
+                           } 
+                           else {
+                               is_valid = 1; // Đánh dấu rằng tên sản phẩm đã hợp lệ
+                           }
+                    }
+                }
                 printf("Enter product price: ");
                 price = validate_positive_number();
 

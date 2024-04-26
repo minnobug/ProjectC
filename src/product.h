@@ -12,6 +12,7 @@ struct Product {
     char manufacturer[50];
     float price;
     int quantity;
+    int cartID;
 };
 
 struct Product products[MAX_PRODUCTS];
@@ -133,7 +134,7 @@ void updateProduct(int id, char *newName, float newPrice, int newQuantity) {
                     products[i].price = newPrice;
                 } else {
                     printf("Error! Please enter a positive number: ");
-                    newPrice = validate_positive_number("Enter new price (or press Enter to keep old price): ");
+                    newPrice = validate_positive_number();
                     products[i].price = newPrice;
                 }
             } else {
@@ -148,7 +149,7 @@ void updateProduct(int id, char *newName, float newPrice, int newQuantity) {
                     products[i].quantity = newQuantity;
                 } else {
                     printf("Error! Please enter a positive number: ");
-                    newQuantity = validate_positive_number("Enter new quantity (or press Enter to keep old quantity): ");
+                    newQuantity = validate_positive_number();
                     products[i].quantity = newQuantity;
                 }
             } else {
@@ -172,9 +173,9 @@ void displayProducts() {
         return;
     }
     printf("List of Products:\n");
-    printf("%-15s %-20s %-20s %-10s\n", "ID of Product", "Name", "Price", "Quantity");
+    printf("%-15s %-20s %-30s %-20s\n", "ID of Product", "Name", "Price", "Quantity");
     for (int i = numProducts - 1; i >= 0; i--) {
-        printf("%-15d %-20s %-20.0f %-10d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
+        printf("%-15d %-20s %-35.0f %-20d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
 }
 
@@ -213,7 +214,8 @@ void reloadProductsData() {
 
 // Display product
 void displayProduct(struct Product product) {
-    printf("ID of Product\t: %d | Name\t: %s | Price\t: %.0f | Quantity: %d\n", product.id, product.name, product.price, product.quantity);
+    printf("ID of Product: %-5d | Name: %-15s | Price: %-15.0f | Quantity: %d\n", 
+           product.id, product.name, product.price, product.quantity);
 }
 
 // Read products from text file
