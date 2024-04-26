@@ -33,6 +33,7 @@ void display_bill_by_idOrder(int idOrder);
 int validate_choice(int min, int max);
 int validate_positive_number();
 
+
 //CART       
 struct Cart {
     char cart_id[CART_ID_LENGTH + 1];
@@ -50,22 +51,18 @@ void initCart(struct Cart *cart) {
 
 // Generate cart ID
 char *generate_cart_id() {
-    // Allocate memory for the cart ID string
+   
     char *cart_id = (char *)malloc((CART_ID_LENGTH + 1) * sizeof(char));
-    
-    // Set seed for rand function based on current time
+  
     srand(time(NULL));
     
-    // Possible characters in the cart ID (letters and numbers)
     const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     
-    // Random generate characters for the cart ID
     for (int i = 0; i < CART_ID_LENGTH; i++) {
         int index = rand() % (sizeof(charset) - 1);
         cart_id[i] = charset[index];
     }
     
-    // End the string with a NULL character
     cart_id[CART_ID_LENGTH] = '\0';
     
     return cart_id;
@@ -107,7 +104,7 @@ void saveCartToFile(struct Cart *cart) {
 
     static int cartCounter = 0;
     int cartID = ++cartCounter;
-
+    
     // Ghi cart ID vào file
     fprintf(file, "Cart ID: %d\n", cartID);
 
@@ -161,9 +158,7 @@ void displayCart(struct Cart cart) {
 
 // Add product to the cart
 void addProductToCart(struct Cart *cart,struct Product *products, int numProducts,struct Product newProduct) {
-
-
-    // Find the product with the entered ID
+// Find the product with the entered ID
     int productIndex = -1;
     for (int i = 0; i < numProducts; i++) {
         if (products[i].id == newProduct.id) {
@@ -177,116 +172,125 @@ void addProductToCart(struct Cart *cart,struct Product *products, int numProduct
         return;
     }
 
-    // Product found, proceed with adding it to the cart
-    struct Product productToAdd = products[productIndex];
-
-    // Check if there's enough quantity of the product
-    if (productToAdd.quantity <= 0) {
+    if (newProduct.quantity <= 0) {
         printf("Product is out of stock.\n");
         return;
     }
-
-    // Add the product to the cart
+// Add the product to the cart
     for (int i = 0; i < cart->count; i++) {
-        // Check if the product is already in the cart
-        if (cart->products[i].id == productToAdd.id) {
-            // Increment the quantity of the product in the cart
-            cart->products[i].quantity+=productToAdd.quantity;
+        if (cart->products[i].id == newProduct.id) {
+            cart->products[i].quantity+=newProduct.quantity;
             printf("Product added to cart successfully!\n");
-            // Update the quantity of the product in the products array
-            products[productIndex].quantity-=productToAdd.quantity;
-            // Save cart data to file after adding product
+            products[productIndex].quantity-=newProduct.quantity;
             saveCartToFile(cart);
             return;
         }
     }
-    // If the product is not already in the cart, add it
+// If the product is not already in the cart, add it
     if (cart->count < MAX_PRODUCTS_IN_CART) {
-        cart->products[cart->count]= productToAdd;
-        cart->products[cart->count].quantity = productToAdd.quantity;
+        cart->products[cart->count]= newProduct;
+        cart->products[cart->count].quantity = newProduct.quantity;
         cart->count++;
         printf("Product added to cart successfully!\n");
-        // Update the quantity of the product in the products array
-        products[productIndex].quantity-= productToAdd.quantity;
-        // Save cart data to file after adding product
+        products[productIndex].quantity-= newProduct.quantity;
         saveCartToFile(cart);
     } else {
         printf("Cart is full. Cannot add more products.\n");
     }
 }
-
 // Function to reset the screen
 void resetScreen() {
-    // Clear the screen
-    system("cls || clear"); // For Windows and Unix-based systems respectively
-    // Display the menu again or any other interface as needed
-    //displayMenu();
+    system("cls || clear"); 
 }
-
 // Function to handle exiting the task menu
 void exitTaskMenu() {
-    // Perform any necessary cleanup or saving of data
-    // Save cart data to file before exiting
     saveCartToFile(&cart);
-    // Reset the screen
     resetScreen();
 }
-
 // Remove product from cart
 void removeProductFromCart(struct Cart *cart, int id) {
-  int foundIndex = -1;
-
-  for (int i = 0; i < cart->count; i++) {
-    if (cart->products[i].id == id) {
-      foundIndex = i;
-      break;
+    int foundIndex = -1;
+    for (int i = 0; i < cart->count; i++) {
+        if (cart->products[i].id == id) {
+            foundIndex = i;
+            break;
+        }
     }
-  }
 
-  if (foundIndex == -1) {
-    printf("The product does not exist in the shopping cart!\n");
-    return;
-  }
+    if (foundIndex == -1) {
+        printf("The product does not exist in the shopping cart!\n");
+        return;
+    }
 
-  // Move the following products to the previous position
-  for (int i = foundIndex; i < cart->count - 1; i++) {
-    cart->products[i] = cart->products[i + 1];
-  }
+    // Move the following products to the previous position
+    for (int i = foundIndex; i < cart->count - 1; i++) {
+        cart->products[i] = cart->products[i + 1];
+    }
 
-  cart->count--;
-  printf("Product successfully removed from cart!\n");
+    cart->count--;
+    printf("Product successfully removed from cart!\n");
+
+    // Update the cart.txt file
+    FILE *file = fopen("./src/data/cart.txt", "w");
+    if (file == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+    for (int i = 0; i < cart->count; i++) {
+        fprintf(file, "%d %s %.2f\n", cart->products[i].id, cart->products[i].name, cart->products[i].price);
+    }
+
+    fclose(file);
 }
+//update quantity
+int get_max_quantity_from_product_txt(int id) {
+    FILE *file = fopen("./src/data/product.txt", "r");
+    if (file == NULL) {
+        printf("Error opening the file.\n");
+        exit(1);
+    }
 
-// Updates the number of products in the shopping cart
+    int productId, maxQuantity;
+    while (fscanf(file, "%d %d", &productId, &maxQuantity) != EOF) {
+        if (productId == id) {
+            fclose(file);
+            return maxQuantity;
+        }
+    }
+
+    fclose(file);
+    return -1; 
+}
 void updateProductQuantity(struct Cart *cart, int id, int newQuantity) {
-  int foundIndex = -1;
+    int foundIndex = -1;
 
-  for (int i = 0; i < cart->count; i++) {
-    if (cart->products[i].id == id) {
-      foundIndex = i;
-      break;
+    for (int i = 0; i < cart->count; i++) {
+        if (cart->products[i].id == id) {
+            foundIndex = i;
+            break;
+        }
     }
-  }
 
-  if (foundIndex == -1) {
-    printf("The product does not exist in the shopping cart!\n");
-    return;
-  }
+    if (foundIndex == -1) {
+        printf("The product does not exist in the shopping cart!\n");
+        return;
+    }
 
-  if (newQuantity <= 0) {
-    printf("Product quantity must be greater than 0!\n");
-    return;
-  }
+    int maxQuantity = get_max_quantity_from_product_txt(id); 
+    if (newQuantity <= 0 || newQuantity > maxQuantity) {
+        printf("Invalid product quantity. Please choose a valid positive quantity within the available stock.\n");
+        return;
+    }
 
-  cart->products[foundIndex].quantity = newQuantity;
-  printf("Product quantity updated successfully!\n");
+    cart->products[foundIndex].quantity = newQuantity;
+    printf("Product quantity updated successfully!\n");
 }
+
 
 //ORDER
 struct Order;
 int validatePhoneNumber(const char *phoneNumber);
 int validateDate(char *date);
-void read_cart_from_file(char IDOrder);
 void read_order_from_file(const char *filename, struct Order *orders);
 void write_order_to_file(const char *filename, struct Order *order);
 void remove_newline(char *str);
@@ -326,46 +330,8 @@ int validateDate(char *date) {
     return len == 10 && date[2] == '/' && date[5] == '/';
 }
 
-void read_cart_from_file(char IDOrder) {
-    FILE *file = fopen("cart.txt", "r");
-    if (file == NULL) {
-        printf("Cannot open 'cart.txt'.\n");
-        return;
-    }
-
-    struct Product product;
-    int found = 0;
-    char line[100]; // Buffer to store each line read from the file
-
- while (fgets(line, sizeof(line), file) != NULL) {
-    // Check if the first character of the line matches IDOrder
-    if (line[0] == IDOrder) {
-        // Parse the line to get product information
-        if (sscanf(line,"%d,%[^,],%f,%d",
-                   &product.cartID,
-                   product.name,
-                   &product.price,
-                   &product.quantity) == 4)	  {
-           // printf("Cart ID: %d\n", product.id);
-            printf("Product Name: %s\n", product.name);
-            printf("Price: %.2f\n", product.price);
-            printf("Quantity: %d\n", product.quantity);
-            float total;
-            total = product.price*product.quantity;
-            printf("Total price: %.2f\n",total);
-            found = 1; 
-            break; 
-        } else {
-        }
-    } else {
-    }
-}
-    if (found != 1) printf("Cart with ID %c not found.\n", IDOrder);
-    fclose(file);
-}
-
 void read_order_from_file(const char *filename, struct Order *orders) {
-    FILE *file = fopen("src/data/bill/BillNumber%d.txt", "r");
+    FILE *file = fopen("./src/data/bill/BillNumber%d.txt", "r");
     if (file == NULL) {
         printf("Can't open file '%s'.\n", filename);
         return;
@@ -386,7 +352,6 @@ void read_order_from_file(const char *filename, struct Order *orders) {
         n++;
     }
     fclose(file);
-    printf("Read %d orders from file '%s'.\n", n, filename);
 }
 
 
@@ -413,7 +378,6 @@ void writeOrderToFile(const char *filename, struct Order *order, int n) {
     }
 
     fclose(file);
-    printf("The data has been saved successfully.\n");
 }
 
 void removeNewline(char *str) {
@@ -483,20 +447,20 @@ void create_bill(struct Order *numbers, int n) {
 
 void cancel_bill_by_idOrder(int idOrder) {
     char fileName[100];
-    sprintf(fileName, "src/data/bill/BillNumber%d.txt", idOrder);
+    sprintf(fileName, "./src/data/bill/BillNumber%d.txt", idOrder);
     if (remove(fileName) == 0) {
-        printf("File 'BillNumber%d.txt' deleted successfully.\n", idOrder);
+        printf("BillNumber%d deleted successfully.\n", idOrder);
     } else {
-        printf("Error deleting file 'BillNumber%d.txt': File not found.\n", idOrder);
+        printf("Error deleting BillNumber%d: Bill not found.\n", idOrder);
     }
 }
 
 void update_bill_by_idOrder(struct Order *count, int n, int id) {
     char fileName[20];
-    snprintf(fileName, sizeof(fileName), "src/data/bill/BillNumber%d.txt", id);
+    snprintf(fileName, sizeof(fileName), "./src/data/bill/BillNumber%d.txt", id);
     FILE *file = fopen(fileName, "r");
     if (file == NULL) {
-        printf("Error: File '%s' not found.\n", fileName);
+        printf("Error: Bill '%s' not found.\n", fileName);
         return;
     }
 
@@ -528,7 +492,7 @@ void update_bill_by_idOrder(struct Order *count, int n, int id) {
 void display_all_bill_information(int n) {
     for (int i = 1; i < MAX_PRODUCTS; i++) {
         char fileName[100];
-        sprintf(fileName, "src/data/bill/BillNumber%d.txt", i);
+        sprintf(fileName, "./src/data/bill/BillNumber%d.txt", i);
         FILE *file = fopen(fileName, "r");
         if (file != NULL) {
             struct Order order;
@@ -545,17 +509,6 @@ void display_all_bill_information(int n) {
             printf("Customer's Name: %s\n", order.customerName);
             printf("Customer's Address: %s\n", order.address);
             printf("Customer's Phone Number: %s\n", order.phoneNumber);
-
-            for (int j = 0; j < order.productCount; j++) {
-                fscanf(file, "%d,%[^,],%f,%d\n", &order.products[j].id,
-                       order.products[j].name,
-                       &order.products[j].price,
-                       &order.products[j].quantity);
-                printf("Product ID: %d\n", order.products[j].id);
-                printf("Product Name: %s\n", order.products[j].name);
-                printf("Product Price: %.2f\n", order.products[j].price);
-                printf("Product Quantity: %d\n", order.products[j].quantity);
-            }
             fclose(file);
         }
     }
@@ -563,10 +516,10 @@ void display_all_bill_information(int n) {
 
 void display_bill_by_idOrder(int idOrder) {
     char fileName[100];
-    sprintf(fileName, "src/data/bill/BillNumber%d.txt", idOrder);
+    sprintf(fileName, "./src/data/bill/BillNumber%d.txt", idOrder);
     FILE *file = fopen(fileName, "r");
     if (file == NULL) {
-        printf("Error: File '%s' not found.\n", fileName);
+        printf("Error: Bill '%s' not found.\n", fileName);
         return;
     }
 
@@ -584,17 +537,6 @@ void display_bill_by_idOrder(int idOrder) {
     printf("Customer's Name: %s\n", order.customerName);
     printf("Customer's Address: %s\n", order.address);
     printf("Customer's Phone Number: %s\n", order.phoneNumber);
-
-    for (int j = 0; j < order.productCount; j++) {
-        fscanf(file, "%d,%[^,],%f,%d\n", &order.products[j].id,
-               order.products[j].name,
-               &order.products[j].price,
-               &order.products[j].quantity);
-        printf("Product ID: %d\n", order.products[j].id);
-        printf("Product Name: %s\n", order.products[j].name);
-        printf("Product Price: %.2f\n", order.products[j].price);
-        printf("Product Quantity: %d\n", order.products[j].quantity);
-    }
     fclose(file);
 }
 
@@ -629,19 +571,23 @@ void userMenu() {
                     printf("4. Update product quantity in cart\n");
                     printf("5. Display all available products\n");
                     printf("0. Exit\n");
-                    cartChoice = validate_choice(0, 5); // Use cartChoice here
+                    cartChoice = validate_choice(0, 5);
 
-                    switch (cartChoice) { // Use cartChoice here instead of choice
+                    switch (cartChoice) {
                         case 1:
                             displayCart(cart);
                             break;
                         case 2: {
                             // Add product to cart
                             struct Product newProduct;
+                            do {
                             printf("Enter the product ID: ");
                             scanf("%d", &newProduct.id);
-                            
 
+                            if (newProduct.id <= 0) {
+                            printf("Error!!! Invalid product ID. Please enter a valid product ID.\n");
+                            }
+                            } while (newProduct.id <= 0);
                             printf("Enter the quantity of the product: ");
                             newProduct.quantity = validate_positive_number();
 
@@ -667,17 +613,27 @@ void userMenu() {
                             break;
                         }
                         case 4: {
-                            int productId, newQuantity;
-                            printf("Enter the product ID to update quantity: ");
-                            scanf("%d", &productId);
-                            printf("Enter the new quantity: ");
-                            newQuantity = validate_positive_number();
-                            updateProductQuantity(&cart, productId, newQuantity);
-                            break;
+                        int productId, newQuantity,maxQuantity;
+                        do {
+                        printf("Enter the product ID to update quantity: ");
+                        scanf("%d", &productId);
+        
+                        int maxQuantity = get_max_quantity_from_product_txt(productId);
+        
+                        if (maxQuantity == -1) {
+                        printf("Product ID not found. Please try again.\n");
+                        continue; 
+                        }
+        
+                        printf("Enter the new quantity: ");
+                        newQuantity = validate_positive_number();
+        
+                        updateProductQuantity(&cart, productId, newQuantity);
+        
+                        } while (maxQuantity == -1 || newQuantity == -1); 
+                        break;
                         }
                         case 5:
-                          
-                            // Display available products
                             displayAvailableProducts(products, numProducts);
                             break;
                         case 0:
@@ -686,12 +642,12 @@ void userMenu() {
                         default:
                             printf("Invalid selection! Please try again.\n");
                     }
-                      } while (cartChoice != 0); // Use cartChoice here instead of choice
+                      } while (cartChoice != 0); 
 
                        // Generate and display the cart ID
                        char *cart_id = generate_cart_id();
                        printf("Cart ID: %s\n", cart_id);
-                       free(cart_id); // Free memory allocated for the cart ID
+                       free(cart_id); 
                        break;
                       }
 

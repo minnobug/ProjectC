@@ -40,18 +40,15 @@ void adminMenu(int choice) {
                 int id, quantity;
                 float price;
                 char name[100];
-                int is_valid = 0; // Biến để kiểm tra xem tên sản phẩm đã hợp lệ chưa
+                int is_valid = 0; 
                 while (!is_valid) {
                     printf("Enter product name: ");
                     fgets(name, sizeof(name), stdin);
-                    // Loại bỏ dấu xuống dòng nếu có
                     name[strcspn(name, "\n")] = '\0';
-                    // Kiểm tra xem tên sản phẩm có chứa ký tự nào không
                     if (strlen(name) == 0) {
                          printf("Product name cannot be empty. Please try again.\n");
                     }
                     else {
-                        // Kiểm tra xem tên sản phẩm có bao gồm toàn ký tự dấu cách không
                            int i, all_spaces = 1;
                            for (i = 0; i < strlen(name); i++) {
                                if (name[i] != ' ') {
@@ -64,22 +61,17 @@ void adminMenu(int choice) {
                                printf("Product name cannot consist of only spaces. Please try again.\n");
                            } 
                            else {
-                               is_valid = 1; // Đánh dấu rằng tên sản phẩm đã hợp lệ
+                               is_valid = 1; 
                            }
                     }
                 }
                 printf("Enter product price: ");
                 price = validate_positive_number();
-
                 printf("Enter product quantity: ");
                 quantity = validate_positive_number();
-
                 struct Product newProduct = createProduct(id, name, price, quantity);
                 addProduct(newProduct);
-
                 sortProductsByID();
-
-                // Save products to file
                 writeProductsToFile(FILE_PATH, products, numProducts);
 
                 break;
@@ -93,8 +85,6 @@ void adminMenu(int choice) {
                 scanf("%d", &id);
                 removeProduct(id);
                 sortProductsByID();
-
-                // Save products to file after removal
                 writeProductsToFile(FILE_PATH, products, numProducts);
                 break;
             }
@@ -104,14 +94,10 @@ void adminMenu(int choice) {
                int id, quantity;
                float price;
                char name[100];
-
                printf("Enter product ID to update: ");
                scanf("%d", &id);
-
                updateProduct(id, name, price, quantity);
-
                sortProductsByID();
-               // Save products to file after update
                writeProductsToFile(FILE_PATH, products, numProducts);
 
                break;
@@ -125,7 +111,6 @@ void adminMenu(int choice) {
             }
             case 0:
                 printf("Successfully exited the product management program.\n");
-                // Reload products data from file before exiting
                 reloadProductsData();
                 break;
             default:

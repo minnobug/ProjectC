@@ -71,7 +71,6 @@ void writeProductsToFile(const char *filename, struct Product products[], int nu
         fprintf(file_pointer, "%d,%s,%.0f,%d\n", products[i].id, products[i].name, products[i].price, products[i].quantity);
     }
     fclose(file_pointer);
-    //printf("The data has been saved successfully.\n");
 }
 
 // Get the last product ID from the file
@@ -109,7 +108,6 @@ void removeProduct(int id) {
 void updateProduct(int id, char *newName, float newPrice, int newQuantity) {
     for (int i = 0; i < numProducts; i++) {
         if (products[i].id == id) {
-            // Print old information
             printf("Old Information of Product with ID %d:\n", id);
             printf("Name: %s\n", products[i].name);
             printf("Price: %.0f\n", products[i].price);
@@ -183,7 +181,7 @@ void displayProducts() {
 int compareProducts(const void *a, const void *b) {
     const struct Product *productA = (const struct Product *)a;
     const struct Product *productB = (const struct Product *)b;
-    return productB->id - productA->id; // Compare in descending order
+    return productB->id - productA->id; 
 }
 
 // Sort products by ID in descending order
@@ -203,13 +201,13 @@ void loadProductsFromFile(const char *filename) {
         numProducts++;
     }
     fclose(file);
-    sortProductsByID(); // Sort products by ID in descending order after loading
+    sortProductsByID();
 }
 
 // Reload products data from file
 void reloadProductsData() {
-    numProducts = 0; // Reset the number of products
-    loadProductsFromFile(FILE_PATH); // Load products from file 
+    numProducts = 0;
+    loadProductsFromFile(FILE_PATH);
 }
 
 // Display product
