@@ -1,4 +1,2 @@
-Cart ID: Cart
-1,4
-3,4
-
+Cart ID: 1
+Product ID: 1, Quantity: 9, Name: fk, Price: 56

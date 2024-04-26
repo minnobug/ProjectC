@@ -22,7 +22,6 @@ int validate_choice(int min, int max);
 int validate_positive_number();
 
 
-
 // ADMIN MENU
 void adminMenu(int choice) {
     do {

@@ -10,6 +10,7 @@
 #define MAX_CART 100
 #define MAX_PRODUCTS 100
 #define CART_ID_LENGTH 10
+#define MAX_PRODUCTS_IN_CART 100
 
 
 struct Product;
@@ -18,7 +19,8 @@ void displayProduct(struct Product product);
 void displayProductsFromFile(const char *filename); 
 void initCart( struct Cart *cart);
 void displayCart(struct Cart cart);
-void addProductToCart(struct Cart *cart, struct Product product);
+//void addProductToCart(struct Cart *cart, struct Product product);
+void addProductToCart(struct Cart *cart, struct Product *products, int numProducts, struct Product newProduct);
 void removeProductFromCart(struct Cart *cart, int id);
 void updateProductQuantity(struct Cart *cart, int id, int newQuantity);
 char *generate_cart_id();
@@ -30,7 +32,7 @@ void cancel_bill_by_idOrder(int idOrder);
 void display_all_bill_information(int n);
 void display_bill_by_idOrder(int idOrder);
 int validate_choice(int min, int max);
-
+int validate_positive_number();
 
 //CART       
 struct Cart {
@@ -96,20 +98,25 @@ void readDataFromFile(struct Product products[], int *numProducts) {
 }
 
 
-// Save cart data to file // them CARD ID vao day
+
 void saveCartToFile(struct Cart *cart) {
     FILE *file = fopen("./src/data/cart.txt", "w");
     if (file == NULL) {
         printf("Error opening file!\n");
         exit(1);
     }
-    // Ghi cart ID vai file
-    fprintf(file, "Cart ID: %s\n", cart->cart_id);
+
+    static int cartCounter = 0;
+    int cartID = ++cartCounter;
+
+    // Ghi cart ID vào file
+    fprintf(file, "Cart ID: %d\n", cartID);
 
     for (int i = 0; i < cart->count; i++) {
-        fprintf(file, "%d,%d\n", cart->products[i].id, cart->products[i].quantity);
-    }
-
+        fprintf(file, "Product ID: %d, Quantity: %d, Name: %s, Price: %.0f\n",
+                cart->products[i].id, cart->products[i].quantity,
+                cart->products[i].name, cart->products[i].price);
+      }
     fclose(file);
  }
 
@@ -122,13 +129,24 @@ void loadCartFromFile(struct Cart *cart) {
     }
 
     // read id from file
-    fscanf(file, "%s", cart->cart_id);
-
-    // read data product from file and save cart
-	    while (fscanf(file, "%d %s %f %d", &cart->products[cart->count].id, cart->products[cart->count].name, &cart->products[cart->count].price, &cart->products[cart->count].quantity) == 4) {
+    fscanf(file, "Cart Id: %s\n", cart->cart_id);
+    
+    // Read product data from file and populate cart
+    while (fscanf(file, "Product ID: %d, Quantity: %d, Name: %49[^,], Price: %f\n",
+                  &cart->products[cart->count].id,
+                  &cart->products[cart->count].quantity,
+                  cart->products[cart->count].name,
+                  &cart->products[cart->count].price) == 4) {
         cart->count++;
-     }
+        if (cart->count >= MAX_PRODUCTS_IN_CART) {
+            printf("Maximum number of products in cart reached.\n");
+            break;
+        }
+    }
+
+    fclose(file);
 }
+
 // display cart
 void displayCart(struct Cart cart) {
   if (cart.count == 0) {
@@ -143,17 +161,76 @@ void displayCart(struct Cart cart) {
 }
 
 // Add product to the cart
-void addProductToCart(struct Cart *cart, struct Product product) {
-    if (cart->count >= MAX_CART) {
-        printf("Shopping cart is full! Unable to add product.\n");
+void addProductToCart(struct Cart *cart,struct Product *products, int numProducts,struct Product newProduct) {
+
+
+    // Find the product with the entered ID
+    int productIndex = -1;
+    for (int i = 0; i < numProducts; i++) {
+        if (products[i].id == newProduct.id) {
+            productIndex = i;
+            break;
+        }
+    }
+
+    if (productIndex == -1) {
+        printf("Product with ID %d not found.\n", newProduct.id);
         return;
     }
 
-    cart->products[cart->count] = product;
-    cart->count++;
-    printf("Product added to cart successfully!\n");
-    // Save cart data to file after adding product
-    saveCartToFile(cart);
+    // Product found, proceed with adding it to the cart
+    struct Product productToAdd = products[productIndex];
+
+    // Check if there's enough quantity of the product
+    if (productToAdd.quantity <= 0) {
+        printf("Product is out of stock.\n");
+        return;
+    }
+
+    // Add the product to the cart
+    for (int i = 0; i < cart->count; i++) {
+        // Check if the product is already in the cart
+        if (cart->products[i].id == productToAdd.id) {
+            // Increment the quantity of the product in the cart
+            cart->products[i].quantity+=productToAdd.quantity;
+            printf("Product added to cart successfully!\n");
+            // Update the quantity of the product in the products array
+            products[productIndex].quantity-=productToAdd.quantity;
+            // Save cart data to file after adding product
+            saveCartToFile(cart);
+            return;
+        }
+    }
+    // If the product is not already in the cart, add it
+    if (cart->count < MAX_PRODUCTS_IN_CART) {
+        cart->products[cart->count]= productToAdd;
+        cart->products[cart->count].quantity = productToAdd.quantity;
+        cart->count++;
+        printf("Product added to cart successfully!\n");
+        // Update the quantity of the product in the products array
+        products[productIndex].quantity-= productToAdd.quantity;
+        // Save cart data to file after adding product
+        saveCartToFile(cart);
+    } else {
+        printf("Cart is full. Cannot add more products.\n");
+    }
+}
+
+// Function to reset the screen
+void resetScreen() {
+    // Clear the screen
+    system("cls || clear"); // For Windows and Unix-based systems respectively
+    // Display the menu again or any other interface as needed
+    //displayMenu();
+}
+
+// Function to handle exiting the task menu
+void exitTaskMenu() {
+    // Perform any necessary cleanup or saving of data
+    // Save cart data to file before exiting
+    saveCartToFile(&cart);
+    // Reset the screen
+    resetScreen();
 }
 
 // Remove product from cart
@@ -549,8 +626,7 @@ void userMenu() {
                             
 
                             printf("Enter the quantity of the product: ");
-                            scanf("%d", &newProduct.quantity);
-                            
+                            newProduct.quantity = validate_positive_number();
 
                             for (int i = 0; i < numProducts; i++) {
                               if(newProduct.id == products[i].id) {
@@ -560,7 +636,7 @@ void userMenu() {
                                 }
                                 strcpy(newProduct.name, products[i].name);
                                 newProduct.price = products[i].price;
-                                addProductToCart(&cart, newProduct);
+                                addProductToCart(&cart,products, numProducts,newProduct);
                                 break;
                               }
                             }
@@ -578,7 +654,7 @@ void userMenu() {
                             printf("Enter the product ID to update quantity: ");
                             scanf("%d", &productId);
                             printf("Enter the new quantity: ");
-                            scanf("%d", &newQuantity);
+                            newQuantity = validate_positive_number();
                             updateProductQuantity(&cart, productId, newQuantity);
                             break;
                         }
