@@ -46,7 +46,7 @@ void adminMenu(int choice) {
                     fgets(name, sizeof(name), stdin);
                     name[strcspn(name, "\n")] = '\0';
                     if (strlen(name) == 0) {
-                         printf("Product name cannot be empty. Please try again.\n");
+                        printf("Product name cannot be empty. Please try again.\n");
                     }
                     else {
                            int i, all_spaces = 1;
